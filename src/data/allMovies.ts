@@ -1,0 +1,785 @@
+import { Movie } from '../types/movie';
+import { createCinematicPoster } from './posterArt';
+
+export const curatedMasterpieces: Movie[] = [
+  // ==========================================
+  // 1. MARVEL CINEMATIC UNIVERSE (MCU — 12 Epic Blockbusters)
+  // ==========================================
+  {
+    id: "mcu-avengers-endgame",
+    imdbId: "tt4154796",
+    title: "Avengers: Endgame",
+    originalTitle: "Avengers: Endgame",
+    year: 2019,
+    type: "movie",
+    language: "Marvel MCU",
+    languageCode: "marvel",
+    flag: "🦸‍♂️",
+    rating: 20,
+    imdbRating: 8.4,
+    metascore: 78,
+    pgRating: "PG-13",
+    duration: "3h 1m",
+    genres: ["Action", "Adventure", "Sci-Fi"],
+    storyline: "After the devastating events of Infinity War, the universe is in ruins. With the help of remaining allies, the Avengers assemble once more to reverse Thanos' actions.",
+    poster: createCinematicPoster(
+      "Avengers: Endgame",
+      "AVENGERS ASSEMBLE",
+      2019,
+      "Anthony & Joe Russo",
+      ["Robert Downey Jr.", "Chris Evans", "Scarlett Johansson"],
+      "Highest Grossing Superhero Epic",
+      "#3b0764",
+      "#a855f7",
+      "Part of the journey is the end. Whatever it takes.",
+      `<g fill="#a855f7" transform="scale(1.4) translate(-25,-25)">
+        <polygon points="12 2 15 8 22 9 17 14 18 21 12 17 6 21 7 14 2 9 9 8 12 2"/>
+        <text x="12" y="16" font-size="10" font-weight="900" text-anchor="middle" fill="#ffffff">A</text>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg",
+    director: "Anthony & Joe Russo",
+    stars: ["Robert Downey Jr.", "Chris Evans", "Mark Ruffalo", "Chris Hemsworth"],
+    boxOffice: "$2.799B",
+    trailerYoutubeId: "TcMBFSGVi1c",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-01",
+    streamingProviders: [{ name: "Disney+", type: "Stream", url: "https://disneyplus.com" }]
+  },
+  {
+    id: "mcu-avengers-infinity-war",
+    imdbId: "tt4154756",
+    title: "Avengers: Infinity War",
+    originalTitle: "Avengers: Infinity War",
+    year: 2018,
+    type: "movie",
+    language: "Marvel MCU",
+    languageCode: "marvel",
+    flag: "🦸‍♂️",
+    rating: 20,
+    imdbRating: 8.4,
+    metascore: 68,
+    pgRating: "PG-13",
+    duration: "2h 29m",
+    genres: ["Action", "Adventure", "Sci-Fi"],
+    storyline: "The Avengers and their allies must be willing to sacrifice all in an attempt to defeat the powerful Thanos before his blitz of devastation puts an end to the universe.",
+    poster: createCinematicPoster(
+      "Avengers: Infinity War",
+      "INFINITY SAGA",
+      2018,
+      "Anthony & Joe Russo",
+      ["Robert Downey Jr.", "Chris Hemsworth", "Josh Brolin (Thanos)"],
+      "Infinity Gauntlet Epic",
+      "#450a0a",
+      "#f59e0b",
+      "Destiny arrives all the same. Dread it. Run from it.",
+      `<g fill="#f59e0b" transform="scale(1.4) translate(-25,-25)">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="#f59e0b" stroke-width="2"/>
+        <circle cx="12" cy="7" r="2" fill="#ef4444"/>
+        <circle cx="7" cy="12" r="2" fill="#3b82f6"/>
+        <circle cx="17" cy="12" r="2" fill="#10b981"/>
+        <circle cx="12" cy="17" r="2" fill="#a855f7"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/bOGkgRGdhrBYJSLpXaxhXVstNsV.jpg",
+    director: "Anthony & Joe Russo",
+    stars: ["Robert Downey Jr.", "Chris Hemsworth", "Josh Brolin"],
+    boxOffice: "$2.052B",
+    trailerYoutubeId: "6ZfuNTqbHE8",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-02",
+    streamingProviders: [{ name: "Disney+", type: "Stream", url: "https://disneyplus.com" }]
+  },
+  {
+    id: "mcu-iron-man",
+    imdbId: "tt0371746",
+    title: "Iron Man",
+    originalTitle: "Iron Man",
+    year: 2008,
+    type: "movie",
+    language: "Marvel MCU",
+    languageCode: "marvel",
+    flag: "🦸‍♂️",
+    rating: 20,
+    imdbRating: 7.9,
+    metascore: 79,
+    pgRating: "PG-13",
+    duration: "2h 6m",
+    genres: ["Action", "Adventure", "Sci-Fi"],
+    storyline: "After being held captive in an Afghan cave, billionaire industrialist Tony Stark creates a unique weaponized suit of armor to fight evil.",
+    poster: createCinematicPoster(
+      "Iron Man",
+      "I AM IRON MAN",
+      2008,
+      "Jon Favreau",
+      ["Robert Downey Jr.", "Gwyneth Paltrow", "Jeff Bridges"],
+      "The Birth of the MCU",
+      "#7f1d1d",
+      "#fbbf24",
+      "Heroes aren't born. They're built in a cave with a box of scraps.",
+      `<g fill="#fbbf24" transform="scale(1.4) translate(-25,-25)">
+        <circle cx="12" cy="12" r="8" fill="none" stroke="#fbbf24" stroke-width="2"/>
+        <polygon points="12 6 17 15 7 15" fill="#38bdf8"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/cyecbqqqP0uVl0o8b0mK3l6Y7u7.jpg",
+    director: "Jon Favreau",
+    stars: ["Robert Downey Jr.", "Gwyneth Paltrow", "Jeff Bridges"],
+    boxOffice: "$585.8M",
+    trailerYoutubeId: "8ugaeA-nMTc",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-03",
+    streamingProviders: [{ name: "Disney+", type: "Stream", url: "https://disneyplus.com" }]
+  },
+  {
+    id: "mcu-avengers-2012",
+    imdbId: "tt0848228",
+    title: "The Avengers",
+    originalTitle: "The Avengers",
+    year: 2012,
+    type: "movie",
+    language: "Marvel MCU",
+    languageCode: "marvel",
+    flag: "🦸‍♂️",
+    rating: 20,
+    imdbRating: 8.0,
+    metascore: 69,
+    pgRating: "PG-13",
+    duration: "2h 23m",
+    genres: ["Action", "Adventure", "Sci-Fi"],
+    storyline: "Earth's mightiest heroes must come together and learn to fight as a team if they are going to stop the mischievous Loki and his alien army.",
+    poster: createCinematicPoster(
+      "The Avengers",
+      "EARTH'S MIGHTIEST HEROES",
+      2012,
+      "Joss Whedon",
+      ["Robert Downey Jr.", "Chris Evans", "Scarlett Johansson"],
+      "Phase One Masterpiece",
+      "#0f172a",
+      "#38bdf8",
+      "Some assembly required. Battle of New York.",
+      `<g fill="#38bdf8" transform="scale(1.4) translate(-25,-25)">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="#38bdf8" stroke-width="2"/>
+        <text x="12" y="16" font-size="12" font-weight="bold" text-anchor="middle" fill="#38bdf8">A</text>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/9BBTo63ANSmhC4e6r62OJFuK2GL.jpg",
+    director: "Joss Whedon",
+    stars: ["Robert Downey Jr.", "Chris Evans", "Scarlett Johansson"],
+    boxOffice: "$1.519B",
+    trailerYoutubeId: "eOrNdBpGMv8",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-04",
+    streamingProviders: [{ name: "Disney+", type: "Stream", url: "https://disneyplus.com" }]
+  },
+  {
+    id: "mcu-captain-america-winter-soldier",
+    imdbId: "tt1843866",
+    title: "Captain America: The Winter Soldier",
+    originalTitle: "The Winter Soldier",
+    year: 2014,
+    type: "movie",
+    language: "Marvel MCU",
+    languageCode: "marvel",
+    flag: "🦸‍♂️",
+    rating: 20,
+    imdbRating: 7.8,
+    metascore: 70,
+    pgRating: "PG-13",
+    duration: "2h 16m",
+    genres: ["Action", "Adventure", "Sci-Fi", "Thriller"],
+    storyline: "As Steve Rogers struggles to embrace his role in the modern world, he teams up with a fellow Avenger and S.H.I.E.L.D. agent, Black Widow, to battle a new threat: The Winter Soldier.",
+    poster: createCinematicPoster(
+      "The Winter Soldier",
+      "CAPTAIN AMERICA",
+      2014,
+      "Anthony & Joe Russo",
+      ["Chris Evans", "Sebastian Stan", "Scarlett Johansson"],
+      "Political Spy-Thriller MCU Classic",
+      "#0f172a",
+      "#ef4444",
+      "In order to build a better world, sometimes things have to come down.",
+      `<g fill="#ef4444" transform="scale(1.4) translate(-25,-25)">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="#ef4444" stroke-width="2"/>
+        <circle cx="12" cy="12" r="5" fill="none" stroke="#ffffff" stroke-width="1.5"/>
+        <polygon points="12 8 13.5 11 16.5 11 14 13 15 16 12 14 9 16 10 13 7.5 11 10.5 11" fill="#3b82f6"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/4HodYYKEIsGOdinkGi2Ucz6X9i0.jpg",
+    director: "Anthony & Joe Russo",
+    stars: ["Chris Evans", "Sebastian Stan", "Scarlett Johansson"],
+    boxOffice: "$714.4M",
+    trailerYoutubeId: "7SlILk2WMTI",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-05",
+    streamingProviders: [{ name: "Disney+", type: "Stream", url: "https://disneyplus.com" }]
+  },
+  {
+    id: "mcu-spider-man-no-way-home",
+    imdbId: "tt10872600",
+    title: "Spider-Man: No Way Home",
+    originalTitle: "Spider-Man: No Way Home",
+    year: 2021,
+    type: "movie",
+    language: "Marvel MCU",
+    languageCode: "marvel",
+    flag: "🦸‍♂️",
+    rating: 20,
+    imdbRating: 8.2,
+    metascore: 71,
+    pgRating: "PG-13",
+    duration: "2h 28m",
+    genres: ["Action", "Adventure", "Fantasy"],
+    storyline: "With Spider-Man's identity now revealed, Peter asks Doctor Strange for help. When a spell goes wrong, dangerous foes from other worlds appear, forcing Peter to discover what it truly means to be Spider-Man.",
+    poster: createCinematicPoster(
+      "No Way Home",
+      "SPIDER-MAN MULTIVERSE",
+      2021,
+      "Jon Watts",
+      ["Tom Holland", "Zendaya", "Benedict Cumberbatch"],
+      "3 Generations of Spider-Man",
+      "#7f1d1d",
+      "#38bdf8",
+      "With great power, there must also come great responsibility.",
+      `<g fill="#ef4444" transform="scale(1.4) translate(-25,-25)">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="#ef4444" stroke-width="2"/>
+        <line x1="12" y1="2" x2="12" y2="22" stroke="#38bdf8" stroke-width="1.5"/>
+        <line x1="2" y1="12" x2="22" y2="12" stroke="#38bdf8" stroke-width="1.5"/>
+        <line x1="5" y1="5" x2="19" y2="19" stroke="#38bdf8" stroke-width="1.5"/>
+        <line x1="5" y1="19" x2="19" y2="5" stroke="#38bdf8" stroke-width="1.5"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/14QbnygCuTO0vl7CAFmPf1fgZfV.jpg",
+    director: "Jon Watts",
+    stars: ["Tom Holland", "Tobey Maguire", "Andrew Garfield", "Zendaya"],
+    boxOffice: "$1.922B",
+    trailerYoutubeId: "JfVOs4VSpmA",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-06",
+    streamingProviders: [{ name: "Starz", type: "Stream", url: "https://starz.com" }]
+  },
+  {
+    id: "mcu-thor-ragnarok",
+    imdbId: "tt3501632",
+    title: "Thor: Ragnarok",
+    originalTitle: "Thor: Ragnarok",
+    year: 2017,
+    type: "movie",
+    language: "Marvel MCU",
+    languageCode: "marvel",
+    flag: "🦸‍♂️",
+    rating: 20,
+    imdbRating: 7.9,
+    metascore: 74,
+    pgRating: "PG-13",
+    duration: "2h 10m",
+    genres: ["Action", "Adventure", "Comedy"],
+    storyline: "Imprisoned on the planet Sakaar, Thor must race against time to return to Asgard and stop Ragnarök, the destruction of his world, at the hands of the ruthless villain Hela.",
+    poster: createCinematicPoster(
+      "Thor: Ragnarok",
+      "GOD OF THUNDER",
+      2017,
+      "Taika Waititi",
+      ["Chris Hemsworth", "Tom Hiddleston", "Cate Blanchett"],
+      "Vibrant Cosmic Spectacle",
+      "#042f2e",
+      "#14b8a6",
+      "Asgard is not a place. It's a people. Immigrant Song.",
+      `<g fill="#14b8a6" transform="scale(1.4) translate(-25,-25)">
+        <polygon points="12 2 15 8 22 9 17 14 18 21 12 17 6 21 7 14 2 9 9 8 12 2"/>
+        <line x1="12" y1="2" x2="12" y2="22" stroke="#ffffff" stroke-width="2"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/kaIfm5ryEOwYg8visqR1bPVaY2e.jpg",
+    director: "Taika Waititi",
+    stars: ["Chris Hemsworth", "Tom Hiddleston", "Cate Blanchett"],
+    boxOffice: "$855.3M",
+    trailerYoutubeId: "ue80QwXMRHg",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-07",
+    streamingProviders: [{ name: "Disney+", type: "Stream", url: "https://disneyplus.com" }]
+  },
+  {
+    id: "mcu-black-panther",
+    imdbId: "tt1825683",
+    title: "Black Panther",
+    originalTitle: "Black Panther",
+    year: 2018,
+    type: "movie",
+    language: "Marvel MCU",
+    languageCode: "marvel",
+    flag: "🦸‍♂️",
+    rating: 20,
+    imdbRating: 7.3,
+    metascore: 88,
+    pgRating: "PG-13",
+    duration: "2h 14m",
+    genres: ["Action", "Adventure", "Sci-Fi"],
+    storyline: "T'Challa, heir to the hidden kingdom of Wakanda, must step forward to lead his people into a new era and confront a challenger from his country's past.",
+    poster: createCinematicPoster(
+      "Black Panther",
+      "WAKANDA FOREVER",
+      2018,
+      "Ryan Coogler",
+      ["Chadwick Boseman", "Michael B. Jordan", "Lupita Nyong'o"],
+      "3 Academy Awards Winner",
+      "#18181b",
+      "#a855f7",
+      "Long live the king. Wakanda Forever.",
+      `<g fill="#a855f7" transform="scale(1.4) translate(-25,-25)">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="#a855f7" stroke-width="2"/>
+        <polygon points="12 4 16 12 12 20 8 12"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/6ELJEzQJ3Y45ZczvreC3PFLvaKG.jpg",
+    director: "Ryan Coogler",
+    stars: ["Chadwick Boseman", "Michael B. Jordan", "Lupita Nyong'o"],
+    boxOffice: "$1.349B",
+    trailerYoutubeId: "xjDjIWPwcPU",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-08",
+    streamingProviders: [{ name: "Disney+", type: "Stream", url: "https://disneyplus.com" }]
+  },
+  {
+    id: "mcu-guardians-of-the-galaxy",
+    imdbId: "tt2015381",
+    title: "Guardians of the Galaxy",
+    originalTitle: "Guardians of the Galaxy",
+    year: 2014,
+    type: "movie",
+    language: "Marvel MCU",
+    languageCode: "marvel",
+    flag: "🦸‍♂️",
+    rating: 20,
+    imdbRating: 8.0,
+    metascore: 76,
+    pgRating: "PG-13",
+    duration: "2h 1m",
+    genres: ["Action", "Adventure", "Comedy", "Sci-Fi"],
+    storyline: "A group of intergalactic criminals must pull together to stop a fanatical warrior with plans to purge the universe.",
+    poster: createCinematicPoster(
+      "Guardians of the Galaxy",
+      "AWESOME MIX VOL. 1",
+      2014,
+      "James Gunn",
+      ["Chris Pratt", "Zoe Saldana", "Dave Bautista", "Bradley Cooper"],
+      "Cosmic Rock 'n' Roll Epic",
+      "#1e1b4b",
+      "#f43f5e",
+      "You're welcome. We are Groot.",
+      `<g fill="#f43f5e" transform="scale(1.4) translate(-25,-25)">
+        <rect x="4" y="6" width="16" height="12" rx="2" fill="none" stroke="#f43f5e" stroke-width="2"/>
+        <circle cx="8" cy="12" r="2" fill="#f43f5e"/>
+        <circle cx="16" cy="12" r="2" fill="#f43f5e"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/mN3w1UfI0nO1gBq2Xw8u1j7L6m7.jpg",
+    director: "James Gunn",
+    stars: ["Chris Pratt", "Zoe Saldana", "Dave Bautista"],
+    boxOffice: "$773.3M",
+    trailerYoutubeId: "d96cjJhvlMA",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-09",
+    streamingProviders: [{ name: "Disney+", type: "Stream", url: "https://disneyplus.com" }]
+  },
+  {
+    id: "mcu-deadpool-wolverine",
+    imdbId: "tt6263850",
+    title: "Deadpool & Wolverine",
+    originalTitle: "Deadpool & Wolverine",
+    year: 2024,
+    type: "movie",
+    language: "Marvel MCU",
+    languageCode: "marvel",
+    flag: "🦸‍♂️",
+    rating: 20,
+    imdbRating: 7.7,
+    metascore: 65,
+    pgRating: "R",
+    duration: "2h 8m",
+    genres: ["Action", "Comedy", "Sci-Fi"],
+    storyline: "Wolverine is recovering from his injuries when he crosses paths with the loudmouth Deadpool. They team up to defeat a common enemy and save the multiverse.",
+    poster: createCinematicPoster(
+      "Deadpool & Wolverine",
+      "MAXIMUM EFFORT",
+      2024,
+      "Shawn Levy",
+      ["Ryan Reynolds", "Hugh Jackman", "Emma Corrin"],
+      "2024 Billion-Dollar R-Rated Sensation",
+      "#7f1d1d",
+      "#fbbf24",
+      "LFG. The Merc with a Mouth meets the Adamantium Claw.",
+      `<g fill="#fbbf24" transform="scale(1.4) translate(-25,-25)">
+        <circle cx="12" cy="12" r="9" fill="#ef4444"/>
+        <line x1="12" y1="3" x2="12" y2="21" stroke="#000000" stroke-width="2"/>
+        <circle cx="8" cy="12" r="2.5" fill="#ffffff"/>
+        <circle cx="16" cy="12" r="2.5" fill="#ffffff"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/yDHYTfA3R0jFYba16jBB12teYqu.jpg",
+    director: "Shawn Levy",
+    stars: ["Ryan Reynolds", "Hugh Jackman"],
+    boxOffice: "$1.338B",
+    trailerYoutubeId: "73_1biulkYk",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-10",
+    streamingProviders: [{ name: "Disney+", type: "Stream", url: "https://disneyplus.com" }]
+  },
+
+  // ==========================================
+  // 2. ORIGINAL RMOVIE CLASSIC / TOP IMDB TITLES
+  // ==========================================
+  {
+    id: "en-shawshank",
+    imdbId: "tt0111161",
+    title: "The Shawshank Redemption",
+    originalTitle: "The Shawshank Redemption",
+    year: 1994,
+    type: "movie",
+    language: "English",
+    languageCode: "en",
+    flag: "🇺🇸",
+    rating: 20,
+    imdbRating: 9.3,
+    metascore: 82,
+    pgRating: "R",
+    duration: "2h 22m",
+    genres: ["Drama"],
+    storyline: "Two imprisoned men bond over a number of years, finding solace and redemption through acts of common decency.",
+    poster: createCinematicPoster(
+      "The Shawshank Redemption",
+      "The Shawshank Redemption",
+      1994,
+      "Frank Darabont",
+      ["Tim Robbins", "Morgan Freeman"],
+      "IMDb Ranked #1 Greatest Film",
+      "#0f172a",
+      "#f59e0b",
+      "Fear can hold you prisoner. Hope can set you free.",
+      `<g fill="#f59e0b" transform="scale(1.4) translate(-25,-25)">
+        <polygon points="12 2 15 8 22 9 17 14 18 21 12 17 6 21 7 14 2 9 9 8 12 2"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/kXfqcdQKsToO0OUXHcrrNCHDBzO.jpg",
+    director: "Frank Darabont",
+    stars: ["Tim Robbins", "Morgan Freeman"],
+    boxOffice: "$28.7M",
+    trailerYoutubeId: "PLl99DlL6b4",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-01",
+    streamingProviders: [{ name: "Max", type: "Stream", url: "https://max.com" }]
+  },
+  {
+    id: "en-godfather",
+    imdbId: "tt0068646",
+    title: "The Godfather",
+    originalTitle: "The Godfather",
+    year: 1972,
+    type: "movie",
+    language: "English",
+    languageCode: "en",
+    flag: "🇺🇸",
+    rating: 20,
+    imdbRating: 9.2,
+    metascore: 100,
+    pgRating: "R",
+    duration: "2h 55m",
+    genres: ["Crime", "Drama"],
+    storyline: "The aging patriarch of an organized crime dynasty transfers control of his empire to his reluctant son.",
+    poster: createCinematicPoster(
+      "The Godfather",
+      "The Godfather",
+      1972,
+      "Francis Ford Coppola",
+      ["Marlon Brando", "Al Pacino", "James Caan"],
+      "3 Academy Awards Winner",
+      "#18181b",
+      "#ef4444",
+      "An offer you can't refuse.",
+      `<g fill="#ef4444" transform="scale(1.4) translate(-25,-25)">
+        <circle cx="12" cy="7" r="4"/>
+        <path d="M5.5 21v-2a6.5 6.5 0 0 1 13 0v2z"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/tmU7whstcrGRRa3E2djGstbtZq5.jpg",
+    director: "Francis Ford Coppola",
+    stars: ["Marlon Brando", "Al Pacino"],
+    boxOffice: "$250.3M",
+    trailerYoutubeId: "UaVTIH8mujA",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-02",
+    streamingProviders: [{ name: "Paramount+", type: "Stream", url: "https://paramountplus.com" }]
+  },
+  {
+    id: "en-dark-knight",
+    imdbId: "tt0468569",
+    title: "The Dark Knight",
+    originalTitle: "The Dark Knight",
+    year: 2008,
+    type: "movie",
+    language: "English",
+    languageCode: "en",
+    flag: "🇺🇸",
+    rating: 20,
+    imdbRating: 9.0,
+    metascore: 84,
+    pgRating: "PG-13",
+    duration: "2h 32m",
+    genres: ["Action", "Crime", "Drama"],
+    storyline: "When the menace known as the Joker wreaks havoc and chaos on Gotham, Batman must fight injustice.",
+    poster: createCinematicPoster(
+      "The Dark Knight",
+      "The Dark Knight",
+      2008,
+      "Christopher Nolan",
+      ["Christian Bale", "Heath Ledger", "Aaron Eckhart"],
+      "Academy Award Winner - Heath Ledger",
+      "#09090b",
+      "#38bdf8",
+      "Why so serious? Welcome to a world without rules.",
+      `<g fill="#38bdf8" transform="scale(1.4) translate(-25,-25)">
+        <polygon points="12 2 15 8 22 9 17 14 18 21 12 17 6 21 7 14 2 9 9 8 12 2"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/nMKdUUepR0i5zn0y1T4CsSB5chy.jpg",
+    director: "Christopher Nolan",
+    stars: ["Christian Bale", "Heath Ledger"],
+    boxOffice: "$1.006B",
+    trailerYoutubeId: "EXeTwQWrcwY",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-03",
+    streamingProviders: [{ name: "Max", type: "Stream", url: "https://max.com" }]
+  },
+
+  // ==========================================
+  // 3. BENGALI CINEMA (বাংলা সিনেমা — 20 Authentic Masterpieces)
+  // ==========================================
+  {
+    id: "bn-pather-panchali",
+    imdbId: "tt0048473",
+    title: "Pather Panchali",
+    originalTitle: "পথের পাঁচালী",
+    year: 1955,
+    type: "movie",
+    language: "Bengali",
+    languageCode: "bn",
+    flag: "🇮🇳",
+    rating: 20,
+    imdbRating: 8.4,
+    metascore: 92,
+    pgRating: "Not Rated",
+    duration: "2h 5m",
+    genres: ["Drama"],
+    storyline: "Impoverished priest Harihar Ray, dreaming of a better life for his family, leaves his rural Bengal village in search of work while young Apu and Durga discover life's wonders.",
+    poster: createCinematicPoster(
+      "Pather Panchali",
+      "পথের পাঁচালী",
+      1955,
+      "Satyajit Ray (সত্যজিৎ রায়)",
+      ["Kanu Banerjee", "Karuna Banerjee", "Chunibala Devi"],
+      "Cannes Best Human Document",
+      "#1e1b4b",
+      "#f59e0b",
+      "The Song of the Little Road that touched the world.",
+      `<g fill="#f59e0b" transform="scale(1.4) translate(-25,-25)">
+        <path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zm1 14h-2v2h2v-2zm0-10h-2v8h2V6z"/>
+        <circle cx="20" cy="20" r="14" fill="none" stroke="#f59e0b" stroke-width="2"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg",
+    director: "Satyajit Ray",
+    stars: ["Kanu Banerjee", "Karuna Banerjee", "Chunibala Devi"],
+    boxOffice: "$1.2M",
+    trailerYoutubeId: "f0QnF9dYmC4",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-01",
+    streamingProviders: [{ name: "Criterion Channel", type: "Stream", url: "https://criterionchannel.com" }]
+  },
+  {
+    id: "bn-aparajito",
+    imdbId: "tt0048956",
+    title: "Aparajito",
+    originalTitle: "অপরাজিত",
+    year: 1956,
+    type: "movie",
+    language: "Bengali",
+    languageCode: "bn",
+    flag: "🇮🇳",
+    rating: 20,
+    imdbRating: 8.2,
+    metascore: 94,
+    pgRating: "Not Rated",
+    duration: "1h 50m",
+    genres: ["Drama"],
+    storyline: "Following his father's death in Varanasi, young Apu journeys to Kolkata for higher education, caught between intellectual ambition and the tender love of his lonely mother.",
+    poster: createCinematicPoster(
+      "Aparajito",
+      "অপরাজিত",
+      1956,
+      "Satyajit Ray",
+      ["Pinaki Sengupta", "Smaran Ghosal", "Karuna Banerjee"],
+      "Golden Lion Winner - Venice",
+      "#0f172a",
+      "#38bdf8",
+      "The unvanquished spirit of Apu in the heart of Kolkata.",
+      `<g fill="#38bdf8" transform="scale(1.5) translate(-20,-20)">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg",
+    director: "Satyajit Ray",
+    stars: ["Pinaki Sengupta", "Smaran Ghosal", "Karuna Banerjee"],
+    boxOffice: "$1M",
+    trailerYoutubeId: "f0QnF9dYmC4",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-02",
+    streamingProviders: [{ name: "Criterion Channel", type: "Stream", url: "https://criterionchannel.com" }]
+  },
+  {
+    id: "bn-apur-sansar",
+    imdbId: "tt0052572",
+    title: "Apur Sansar",
+    originalTitle: "অপুর সংসার (The World of Apu)",
+    year: 1959,
+    type: "movie",
+    language: "Bengali",
+    languageCode: "bn",
+    flag: "🇮🇳",
+    rating: 20,
+    imdbRating: 8.2,
+    metascore: 93,
+    pgRating: "Not Rated",
+    duration: "1h 45m",
+    genres: ["Drama"],
+    storyline: "The concluding chapter of the Apu Trilogy portrays Apu's transition into adulthood, his sudden marriage to Aparna, deep love, loss, and fatherhood redemption.",
+    poster: createCinematicPoster(
+      "Apur Sansar",
+      "অপুর সংসার",
+      1959,
+      "Satyajit Ray",
+      ["Soumitra Chatterjee", "Sharmila Tagore"],
+      "The Trilogy Finale",
+      "#450a0a",
+      "#f43f5e",
+      "Debut of Soumitra Chatterjee & Sharmila Tagore in cinematic history.",
+      `<g fill="#f43f5e" transform="scale(1.4) translate(-25,-25)">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg",
+    director: "Satyajit Ray",
+    stars: ["Soumitra Chatterjee", "Sharmila Tagore"],
+    boxOffice: "$1.5M",
+    trailerYoutubeId: "f0QnF9dYmC4",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-03",
+    streamingProviders: [{ name: "Criterion Channel", type: "Stream", url: "https://criterionchannel.com" }]
+  },
+
+  // ==========================================
+  // 4. HINDI & INTERNATIONAL CINEMA
+  // ==========================================
+  {
+    id: "hi-3-idiots",
+    imdbId: "tt1187043",
+    title: "3 Idiots",
+    originalTitle: "३ इडियट्स",
+    year: 2009,
+    type: "movie",
+    language: "Hindi",
+    languageCode: "hi",
+    flag: "🇮🇳",
+    rating: 20,
+    imdbRating: 8.4,
+    metascore: 85,
+    pgRating: "PG-13",
+    duration: "2h 50m",
+    genres: ["Comedy", "Drama"],
+    storyline: "Two friends embark on a quest for a lost buddy who inspired them to think differently.",
+    poster: createCinematicPoster(
+      "3 Idiots",
+      "३ इडियट्स",
+      2009,
+      "Rajkumar Hirani",
+      ["Aamir Khan", "R. Madhavan", "Sharman Joshi"],
+      "All-Time Comedy Legend",
+      "#78350f",
+      "#facc15",
+      "All Izz Well — Chase excellence and success will follow.",
+      `<g fill="#facc15" transform="scale(1.4) translate(-25,-25)">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="#facc15" stroke-width="2"/>
+        <text x="12" y="16" font-size="12" font-weight="bold" text-anchor="middle" fill="#facc15">3</text>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/u2r0lKsmXf3kLzRknd5C5v6oXjS.jpg",
+    director: "Rajkumar Hirani",
+    stars: ["Aamir Khan", "Madhavan", "Sharman Joshi"],
+    boxOffice: "$90.2M",
+    trailerYoutubeId: "K0eDlFX9GMc",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-01",
+    streamingProviders: [{ name: "Prime Video", type: "Stream", url: "https://amazon.com" }]
+  },
+  {
+    id: "kr-parasite",
+    imdbId: "tt6751668",
+    title: "Parasite",
+    originalTitle: "기생충",
+    year: 2019,
+    type: "movie",
+    language: "Korean",
+    languageCode: "ko",
+    flag: "🇰🇷",
+    rating: 20,
+    imdbRating: 8.5,
+    metascore: 96,
+    pgRating: "R",
+    duration: "2h 12m",
+    genres: ["Drama", "Thriller", "Comedy"],
+    storyline: "Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.",
+    poster: createCinematicPoster(
+      "Parasite",
+      "기생충",
+      2019,
+      "Bong Joon-ho",
+      ["Song Kang-ho", "Lee Sun-kyun", "Cho Yeo-jeong"],
+      "Palme d'Or & 4 Oscars Winner",
+      "#064e3b",
+      "#10b981",
+      "Act like you own the place. An unforgettable satire of class.",
+      `<g fill="#10b981" transform="scale(1.4) translate(-25,-25)">
+        <rect x="2" y="9" width="20" height="6" rx="1" fill="#10b981"/>
+        <circle cx="7" cy="12" r="1.5" fill="#000000"/>
+        <circle cx="17" cy="12" r="1.5" fill="#000000"/>
+       </g>`
+    ),
+    backdrop: "https://image.tmdb.org/t/p/original/hiKmpZMGZsrkA3cdBA8a0HXxTFI.jpg",
+    director: "Bong Joon-ho",
+    stars: ["Song Kang-ho", "Lee Sun-kyun"],
+    boxOffice: "$263.1M",
+    trailerYoutubeId: "5xH0RZE728I",
+    isWatched: true,
+    userRating: 20,
+    dateAdded: "2024-01-01",
+    streamingProviders: [{ name: "Max", type: "Stream", url: "https://max.com" }]
+  }
+];
+
+export const allMultilingualCatalog: Movie[] = curatedMasterpieces;
