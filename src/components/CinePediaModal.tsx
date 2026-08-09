@@ -38,6 +38,17 @@ export const CinePediaModal: React.FC<CinePediaModalProps> = ({ isOpen, onClose 
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Escape key listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const quickFactQueries = [
@@ -116,11 +127,17 @@ export const CinePediaModal: React.FC<CinePediaModalProps> = ({ isOpen, onClose 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl h-[650px] rounded-3xl bg-[#0d101a] border border-cyan-500/30 shadow-2xl shadow-cyan-950/40 flex flex-col justify-between overflow-hidden relative">
+    <div 
+      onClick={onClose}
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/90 backdrop-blur-2xl p-3 sm:p-6 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200"
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-2xl max-h-[85vh] h-full sm:h-[640px] rounded-3xl bg-[#0d101a] border border-cyan-500/30 shadow-2xl shadow-cyan-950/40 flex flex-col justify-between overflow-hidden relative my-auto"
+      >
         
         {/* Header Bar */}
-        <div className="p-4 bg-gradient-to-r from-[#12172b] via-[#0f1424] to-[#12172b] border-b border-white/10 flex items-center justify-between">
+        <div className="p-3.5 sm:p-4 bg-gradient-to-r from-[#12172b] via-[#0f1424] to-[#12172b] border-b border-white/10 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-600/30 text-white">
               <Bot className="w-5 h-5" />

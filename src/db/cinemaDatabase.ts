@@ -467,6 +467,13 @@ class CinemaDatabase {
     return this.state.communities.find(c => c.id === id);
   }
 
+  public createCommunity(newComm: Community): void {
+    this.persist({
+      ...this.state,
+      communities: [newComm, ...this.state.communities]
+    });
+  }
+
   public toggleJoinCommunity(communityId: string): void {
     const nextCommunities = this.state.communities.map(c => {
       if (c.id === communityId) {
@@ -475,6 +482,24 @@ class CinemaDatabase {
           ...c,
           isJoined,
           memberCount: isJoined ? c.memberCount + 1 : Math.max(0, c.memberCount - 1)
+        };
+      }
+      return c;
+    });
+
+    this.persist({
+      ...this.state,
+      communities: nextCommunities
+    });
+  }
+
+  public leaveCommunity(communityId: string): void {
+    const nextCommunities = this.state.communities.map(c => {
+      if (c.id === communityId) {
+        return {
+          ...c,
+          isJoined: false,
+          memberCount: Math.max(0, c.memberCount - 1)
         };
       }
       return c;

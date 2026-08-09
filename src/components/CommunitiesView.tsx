@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Community, ChatMessage, VoiceMessage, UserProfile, Movie } from '../types/movie';
+import { Community, ChatMessage, VoiceMessage, UserProfile, Movie, IndustryCategory } from '../types/movie';
 import { cinemaDb } from '../db/cinemaDatabase';
 import { 
   Users, 
   Tv, 
   Mic, 
-  MicOff, 
+  Volume2, 
   Play, 
   Pause, 
   Upload, 
@@ -13,11 +13,15 @@ import {
   Send, 
   Sparkles, 
   MessageSquare, 
-  Volume2, 
-  Check, 
-  Plus, 
   Radio, 
-  ExternalLink,
+  Plus, 
+  LogOut, 
+  UserPlus, 
+  Compass, 
+  Hash, 
+  Search, 
+  Check, 
+  X,
   Flame,
   Globe
 } from 'lucide-react';
@@ -28,6 +32,8 @@ interface CommunitiesViewProps {
   onSelectMovie: (m: Movie) => void;
 }
 
+type ChannelTab = 'chat' | 'voice' | 'theater' | 'members';
+
 export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
   currentUser,
   allMovies,
@@ -35,8 +41,18 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 }) => {
   const communities = cinemaDb.getCommunities();
   const [selectedCommunityId, setSelectedCommunityId] = useState<string>(communities[0]?.id || '');
+  const [activeChannel, setActiveChannel] = useState<ChannelTab>('chat');
   const [chatInput, setChatInput] = useState('');
-  
+
+  // Create Community Modal State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newCommName, setNewCommName] = useState('');
+  const [newCommTagline, setNewCommTagline] = useState('');
+  const [newCommDesc, setNewCommDesc] = useState('');
+  const [newCommCategory, setNewCommCategory] = useState<IndustryCategory | 'general'>('general');
+  const [newCommAvatar, setNewCommAvatar] = useState('');
+  const [newCommBanner, setNewCommBanner] = useState('');
+
   // Voice Recording States
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
@@ -44,16 +60,17 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<any>(null);
 
-  // Community Movie Room States
-  const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
-  const [roomSourceType, setRoomSourceType] = useState<'youtube' | 'local_file'>('youtube');
-  const [customYoutubeUrl, setCustomYoutubeUrl] = useState('');
+  // Theater / Movie Room Player State (NO AUTO PLAY)
+  const [roomSourceType, setRoomSourceType] = useState<'none' | 'youtube' | 'local_file'>('none');
+  const [activeYoutubeId, setActiveYoutubeId] = useState<string>('');
+  const [youtubeInputUrl, setYoutubeInputUrl] = useState('');
   const [localVideoUrl, setLocalVideoUrl] = useState<string | null>(null);
   const [localFileName, setLocalFileName] = useState<string>('');
+  const [selectedCatalogMovieId, setSelectedCatalogMovieId] = useState<string>('');
 
   const activeCommunity = communities.find(c => c.id === selectedCommunityId) || communities[0];
 
-  // Recording Timer
+  // Voice recording timer
   useEffect(() => {
     if (isRecording) {
       recordingTimerRef.current = setInterval(() => {
@@ -67,17 +84,6 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
       if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
     };
   }, [isRecording]);
-
-  // Escape key listener to close modal
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isRoomModalOpen) {
-        setIsRoomModalOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isRoomModalOpen]);
 
   const handleStartRecording = async () => {
     try {
@@ -103,11 +109,9 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
         mediaRecorder.start();
         setIsRecording(true);
       } else {
-        // Fallback for non-supported browsers: simulated voice note
         setIsRecording(true);
       }
     } catch {
-      // Permission denied / fallback
       setIsRecording(true);
     }
   };
@@ -116,7 +120,6 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
     } else {
-      // Simulated voice note dispatch
       sendVoiceMessage('simulated_audio', recordingSeconds || 5);
     }
     setIsRecording(false);
@@ -165,6 +168,66 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
     setChatInput('');
   };
 
+  const handleCreateCommunitySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCommName.trim()) return;
+
+    const newCommunity: Community = {
+      id: 'comm_' + Date.now(),
+      name: newCommName.trim(),
+      tagline: newCommTagline.trim() || 'A vibrant cinema guild for true cinephiles',
+      description: newCommDesc.trim() || 'Welcome to our film community. Watch movies, share reviews, and exchange voice notes.',
+      category: newCommCategory,
+      avatar: newCommAvatar.trim() || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(newCommName)}`,
+      bannerImage: newCommBanner.trim() || 'https://image.tmdb.org/t/p/original/bOGkgRGdhrBYJSLpXaxhXVstNsV.jpg',
+      memberCount: 1,
+      isJoined: true,
+      members: [
+        {
+          id: currentUser.id,
+          username: currentUser.username,
+          displayName: currentUser.displayName,
+          avatarUrl: currentUser.avatarUrl,
+          friendCode: currentUser.friendCode,
+          status: 'online',
+          totalWatchedCount: 0
+        }
+      ],
+      messages: [
+        {
+          id: 'cmsg_' + Date.now(),
+          senderId: currentUser.id,
+          senderName: currentUser.displayName,
+          senderAvatar: currentUser.avatarUrl,
+          content: `🎉 Created community "${newCommName.trim()}"! Welcome everyone!`,
+          timestamp: 'Just now'
+        }
+      ],
+      movieRoom: {
+        isOpen: false,
+        sourceType: 'youtube',
+        isPlaying: false,
+        currentPlayheadSeconds: 0
+      },
+      createdAt: new Date().toISOString()
+    };
+
+    cinemaDb.createCommunity(newCommunity);
+    setSelectedCommunityId(newCommunity.id);
+    setIsCreateModalOpen(false);
+    setNewCommName('');
+    setNewCommTagline('');
+    setNewCommDesc('');
+  };
+
+  const handleToggleJoin = (commId: string) => {
+    cinemaDb.toggleJoinCommunity(commId);
+  };
+
+  const handleLeaveCommunity = (commId: string) => {
+    cinemaDb.leaveCommunity(commId);
+  };
+
   const handleLocalVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -175,185 +238,241 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
     }
   };
 
-  const handleToggleJoin = (commId: string) => {
-    cinemaDb.toggleJoinCommunity(commId);
+  const handlePlayCatalogMovie = (movieId: string) => {
+    const m = allMovies.find(item => item.id === movieId);
+    if (m && m.trailerYoutubeId) {
+      setActiveYoutubeId(m.trailerYoutubeId);
+      setRoomSourceType('youtube');
+    }
+  };
+
+  const handlePlayCustomYoutube = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!youtubeInputUrl.trim()) return;
+
+    let id = youtubeInputUrl.trim();
+    if (id.includes('v=')) {
+      id = id.split('v=')[1]?.split('&')[0] || id;
+    } else if (id.includes('youtu.be/')) {
+      id = id.split('youtu.be/')[1]?.split('?')[0] || id;
+    }
+
+    setActiveYoutubeId(id);
+    setRoomSourceType('youtube');
+    setYoutubeInputUrl('');
   };
 
   return (
-    <div className="space-y-8 pb-16">
+    <div className="pb-16 space-y-6">
       
-      {/* Top Banner */}
-      <div className="p-8 rounded-3xl bg-gradient-to-r from-[#140b24] via-[#0f1224] to-[#0a1529] border border-white/10 shadow-2xl relative overflow-hidden">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600/20 border border-red-500/30 text-red-400 text-xs font-bold">
-              <Users className="w-3.5 h-3.5" />
-              <span>CineVerse Community Guilds</span>
+      {/* Discord-Inspired 3-Column Cinema Server Layout */}
+      <div className="h-[740px] rounded-3xl bg-[#090b14] border border-white/10 shadow-2xl overflow-hidden flex flex-col md:flex-row">
+        
+        {/* Column 1: Server Icons Sidebar (narrow) */}
+        <div className="w-full md:w-20 bg-[#06080f] border-r border-white/5 p-3 flex md:flex-col items-center justify-between md:justify-start gap-3 overflow-x-auto md:overflow-y-auto shrink-0">
+          
+          <div className="flex md:flex-col items-center gap-3">
+            {communities.map(comm => {
+              const isSelected = selectedCommunityId === comm.id;
+              return (
+                <button
+                  key={comm.id}
+                  onClick={() => { setSelectedCommunityId(comm.id); setActiveChannel('chat'); }}
+                  className={`w-12 h-12 rounded-2xl transition-all relative group flex items-center justify-center shrink-0 ${
+                    isSelected
+                      ? 'rounded-2xl ring-2 ring-red-500 shadow-lg shadow-red-600/30'
+                      : 'rounded-3xl hover:rounded-2xl hover:bg-white/10 opacity-70 hover:opacity-100'
+                  }`}
+                  title={comm.name}
+                >
+                  <img
+                    src={comm.avatar}
+                    alt={comm.name}
+                    className="w-full h-full rounded-inherit object-cover"
+                  />
+                  {isSelected && (
+                    <span className="hidden md:block absolute -left-3 w-1.5 h-6 bg-red-500 rounded-r-full" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Add / Create Community Button */}
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="w-12 h-12 rounded-3xl hover:rounded-2xl bg-white/5 hover:bg-red-600/20 border border-white/10 hover:border-red-500/50 text-slate-300 hover:text-red-400 flex items-center justify-center transition-all shrink-0 mt-auto shadow"
+            title="Create Your Own Community"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Column 2: Community Channels & Info (medium 240px) */}
+        <div className="w-full md:w-64 bg-[#0d0f1c] border-r border-white/10 flex flex-col justify-between shrink-0">
+          
+          {/* Community Header Card */}
+          <div className="p-4 border-b border-white/10 space-y-2 bg-[#101324]/60">
+            <div className="flex items-center justify-between">
+              <h3 className="font-heading font-black text-sm text-white truncate max-w-[170px]">
+                {activeCommunity?.name}
+              </h3>
+              <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-red-600/80 text-white uppercase">
+                {activeCommunity?.category}
+              </span>
             </div>
-            <h2 className="font-heading font-black text-3xl text-white tracking-tight">
-              Film Communities & Group Movie Rooms
-            </h2>
-            <p className="text-xs text-slate-400 max-w-xl leading-relaxed">
-              Join Marvel, DC, Tollywood, Bengal, and Hollywood auteur communities. Connect with fellow cinephiles, exchange voice notes, and watch movies together via YouTube or your own local downloaded video files!
+            <p className="text-[10px] text-slate-400 line-clamp-2">
+              {activeCommunity?.tagline}
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Channels List */}
+          <div className="flex-1 p-3 space-y-1.5 overflow-y-auto">
+            <span className="text-[9px] font-black uppercase tracking-wider text-slate-500 px-3 block mb-1">
+              Channels & Rooms
+            </span>
+
             <button
-              onClick={() => setIsRoomModalOpen(true)}
-              className="px-5 py-3 rounded-2xl bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-extrabold text-xs shadow-xl shadow-red-600/30 transition-transform hover:scale-105 flex items-center gap-2"
+              onClick={() => setActiveChannel('chat')}
+              className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 ${
+                activeChannel === 'chat'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+              }`}
             >
-              <Tv className="w-4 h-4" />
-              <span>Enter Community Movie Room</span>
+              <Hash className="w-4 h-4 opacity-70" />
+              <span>general-chat</span>
+            </button>
+
+            <button
+              onClick={() => setActiveChannel('voice')}
+              className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 ${
+                activeChannel === 'voice'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Mic className="w-4 h-4 text-amber-400" />
+              <span>voice-notes-lounge</span>
+            </button>
+
+            <button
+              onClick={() => setActiveChannel('theater')}
+              className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 ${
+                activeChannel === 'theater'
+                  ? 'bg-gradient-to-r from-red-600 to-amber-500 text-white shadow-lg shadow-red-600/30'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Tv className="w-4 h-4 text-cyan-400 animate-pulse" />
+              <span>theater-movie-room</span>
+            </button>
+
+            <button
+              onClick={() => setActiveChannel('members')}
+              className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 ${
+                activeChannel === 'members'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Users className="w-4 h-4 opacity-70" />
+              <span>members ({activeCommunity?.memberCount.toLocaleString()})</span>
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* Main Communities Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Left Column: Community Selector Cards (4 cols) */}
-        <div className="lg:col-span-4 space-y-4">
-          <h3 className="font-heading font-extrabold text-sm text-white px-1">
-            Explore Communities ({communities.length})
-          </h3>
-
-          <div className="space-y-3">
-            {communities.map(comm => (
-              <div
-                key={comm.id}
-                onClick={() => setSelectedCommunityId(comm.id)}
-                className={`p-4 rounded-2xl border transition-all cursor-pointer space-y-3 ${
-                  selectedCommunityId === comm.id
-                    ? 'bg-[#15192e] border-red-500 shadow-lg shadow-red-600/10'
-                    : 'bg-[#0f121d] border-white/5 hover:border-white/15'
-                }`}
+          {/* Join / Leave Community Footer Action */}
+          <div className="p-3 border-t border-white/10 bg-[#0a0c16]">
+            {activeCommunity?.isJoined ? (
+              <button
+                onClick={() => handleLeaveCommunity(activeCommunity.id)}
+                className="w-full py-2 rounded-xl bg-white/5 hover:bg-red-600/20 text-slate-400 hover:text-red-400 border border-white/10 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
               >
-                <div className="flex items-center gap-3">
-                  <img src={comm.avatar} alt={comm.name} className="w-12 h-12 rounded-2xl object-cover border border-white/10 shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-red-600/80 text-white inline-block mb-1">
-                      {comm.category.toUpperCase()}
-                    </span>
-                    <h4 className="font-bold text-xs text-white truncate">{comm.name}</h4>
-                    <p className="text-[10px] text-slate-400 font-medium truncate">{comm.tagline}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[11px] text-slate-400">
-                  <span>👥 {comm.memberCount.toLocaleString()} Members</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleToggleJoin(comm.id);
-                    }}
-                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
-                      comm.isJoined
-                        ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
-                        : 'bg-white/10 hover:bg-red-600 text-white'
-                    }`}
-                  >
-                    {comm.isJoined ? 'Joined' : 'Join'}
-                  </button>
-                </div>
-              </div>
-            ))}
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Leave Community</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => handleToggleJoin(activeCommunity?.id)}
+                className="w-full py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-md transition-colors flex items-center justify-center gap-1.5"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Join Community</span>
+              </button>
+            )}
           </div>
+
         </div>
 
-        {/* Right Column: Community Hub, Chat & Voice Notes (8 cols) */}
-        <div className="lg:col-span-8">
-          {activeCommunity && (
-            <div className="rounded-3xl bg-[#0f121d] border border-white/10 flex flex-col justify-between h-[650px] shadow-2xl overflow-hidden">
-              
-              {/* Community Banner & Top Info */}
-              <div className="relative h-28 w-full overflow-hidden bg-slate-900 border-b border-white/10">
-                <img
-                  src={activeCommunity.bannerImage}
-                  alt={activeCommunity.name}
-                  className="w-full h-full object-cover opacity-50"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0f121d] via-transparent to-black/60" />
+        {/* Column 3: Active Channel Workspace (Chat, Voice, Theater, Members) */}
+        <div className="flex-1 bg-[#101222] flex flex-col justify-between min-w-0">
+          
+          {/* Active Channel Header */}
+          <div className="p-4 border-b border-white/10 bg-[#121526] flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <span className="font-mono text-slate-400 text-sm">#</span>
+              <h4 className="font-heading font-black text-sm text-white">
+                {activeChannel === 'chat' && 'general-chat'}
+                {activeChannel === 'voice' && 'voice-notes-lounge'}
+                {activeChannel === 'theater' && 'theater-movie-room'}
+                {activeChannel === 'members' && 'members-directory'}
+              </h4>
+            </div>
 
-                <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <img src={activeCommunity.avatar} alt={activeCommunity.name} className="w-10 h-10 rounded-2xl object-cover border border-white/20 shadow-lg" />
-                    <div>
-                      <h3 className="font-heading font-black text-base text-white truncate max-w-sm">{activeCommunity.name}</h3>
-                      <p className="text-[10px] text-slate-300 font-medium">{activeCommunity.tagline}</p>
-                    </div>
-                  </div>
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+              <span>{activeCommunity?.memberCount.toLocaleString()} Cinephiles</span>
+            </div>
+          </div>
 
-                  <button
-                    onClick={() => setIsRoomModalOpen(true)}
-                    className="px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-md flex items-center gap-1.5"
-                  >
-                    <Tv className="w-3.5 h-3.5" />
-                    <span>Watch Room</span>
-                  </button>
-                </div>
-              </div>
+          {/* CHANNEL CONTENT 1: GENERAL CHAT */}
+          {activeChannel === 'chat' && (
+            <>
+              {/* Chat Stream */}
+              <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4">
+                {activeCommunity?.messages.map(msg => {
+                  const isMe = msg.senderId === currentUser.id;
+                  return (
+                    <div key={msg.id} className={`flex gap-3 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                      {!isMe && (
+                        <img src={msg.senderAvatar} alt={msg.senderName} className="w-8 h-8 rounded-full bg-slate-800 shrink-0 self-end" />
+                      )}
 
-              {/* Chat Feed */}
-              <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-3.5">
-                {activeCommunity.messages.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500 space-y-2">
-                    <MessageSquare className="w-8 h-8 opacity-40 text-red-500" />
-                    <p className="text-xs">No community messages yet. Start the discussion or record a voice note!</p>
-                  </div>
-                ) : (
-                  activeCommunity.messages.map(msg => {
-                    const isMe = msg.senderId === currentUser.id;
-                    return (
-                      <div key={msg.id} className={`flex gap-3 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                        {!isMe && (
-                          <img src={msg.senderAvatar} alt={msg.senderName} className="w-8 h-8 rounded-full bg-slate-800 shrink-0 self-end" />
-                        )}
+                      <div className={`max-w-[80%] space-y-1 ${isMe ? 'items-end' : 'items-start'}`}>
+                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                          <span className="font-bold text-slate-300">{msg.senderName}</span>
+                          <span>•</span>
+                          <span>{msg.timestamp}</span>
+                        </div>
 
-                        <div className={`max-w-[80%] space-y-1 ${isMe ? 'items-end' : 'items-start'}`}>
-                          <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                            <span className="font-bold text-slate-300">{msg.senderName}</span>
-                            <span>•</span>
-                            <span>{msg.timestamp}</span>
-                          </div>
-
-                          <div className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
-                            isMe
-                              ? 'bg-red-600 text-white rounded-br-none shadow-md'
-                              : 'bg-[#161a2b] text-slate-200 border border-white/10 rounded-bl-none'
-                          }`}>
-                            {msg.voiceMessage ? (
-                              <div className="flex items-center gap-3 py-1">
-                                <div className="p-2 rounded-xl bg-white/10 text-amber-300">
-                                  <Volume2 className="w-4 h-4" />
-                                </div>
-                                <div className="space-y-1">
-                                  <div className="flex items-center gap-1">
-                                    <span className="w-1 h-3 bg-amber-400 rounded-full animate-pulse" />
-                                    <span className="w-1 h-5 bg-amber-400 rounded-full animate-pulse" />
-                                    <span className="w-1 h-2 bg-amber-400 rounded-full animate-pulse" />
-                                    <span className="w-1 h-6 bg-amber-400 rounded-full animate-pulse" />
-                                    <span className="w-1 h-4 bg-amber-400 rounded-full animate-pulse" />
-                                  </div>
-                                  <span className="text-[10px] font-mono text-amber-300">
-                                    Voice Note ({msg.voiceMessage.durationSeconds}s)
-                                  </span>
-                                </div>
+                        <div className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                          isMe
+                            ? 'bg-red-600 text-white rounded-br-none shadow-md'
+                            : 'bg-[#181c30] text-slate-200 border border-white/10 rounded-bl-none'
+                        }`}>
+                          {msg.voiceMessage ? (
+                            <div className="flex items-center gap-3 py-1">
+                              <div className="p-2 rounded-xl bg-white/10 text-amber-300">
+                                <Volume2 className="w-4 h-4" />
                               </div>
-                            ) : (
-                              <p>{msg.content}</p>
-                            )}
-                          </div>
+                              <div>
+                                <span className="text-[10px] font-mono text-amber-300 block">
+                                  Voice Note ({msg.voiceMessage.durationSeconds}s)
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <p>{msg.content}</p>
+                          )}
                         </div>
                       </div>
-                    );
-                  })
-                )}
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Chat Input & Voice Message Recorder Bar */}
-              <div className="p-3 bg-[#121524] border-t border-white/10">
+              {/* Chat Input Bar */}
+              <div className="p-3.5 bg-[#121526] border-t border-white/10">
                 {isRecording ? (
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-red-950/60 border border-red-500/40 animate-pulse">
                     <div className="flex items-center gap-3">
@@ -373,8 +492,8 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                       type="text"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
-                      placeholder={`Message in ${activeCommunity.name}...`}
-                      className="flex-1 bg-[#181c2e] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
+                      placeholder={`Message #${activeCommunity?.name}...`}
+                      className="flex-1 bg-[#181c30] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
                     />
 
                     <button
@@ -396,91 +515,64 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                   </form>
                 )}
               </div>
+            </>
+          )}
 
+          {/* CHANNEL CONTENT 2: VOICE NOTES LOUNGE */}
+          {activeChannel === 'voice' && (
+            <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-6">
+              <div className="w-20 h-20 rounded-3xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-2xl shadow-amber-950/40">
+                <Mic className="w-10 h-10 animate-pulse" />
+              </div>
+
+              <div className="space-y-2 max-w-md">
+                <h4 className="font-heading font-black text-xl text-white">
+                  Voice Discussion Lounge
+                </h4>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Record audio commentary, scene breakdowns, and voice notes with the entire community.
+                </p>
+              </div>
+
+              {isRecording ? (
+                <div className="space-y-4">
+                  <div className="text-red-400 font-mono text-lg font-black animate-pulse">
+                    RECORDING: {recordingSeconds}s
+                  </div>
+                  <button
+                    onClick={handleStopRecording}
+                    className="px-8 py-3 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-black text-xs shadow-xl shadow-red-600/30 transition-transform hover:scale-105"
+                  >
+                    Finish & Send Voice Note
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleStartRecording}
+                  className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white font-black text-xs shadow-xl shadow-amber-600/30 transition-transform hover:scale-105 flex items-center gap-2"
+                >
+                  <Mic className="w-4 h-4" />
+                  <span>Start Recording Audio Note</span>
+                </button>
+              )}
             </div>
           )}
-        </div>
 
-      </div>
-
-      {/* Community Movie Room Modal (YouTube Stream OR Local Video Upload) */}
-      {isRoomModalOpen && activeCommunity && (
-        <div 
-          onClick={() => setIsRoomModalOpen(false)}
-          className="fixed inset-0 z-50 overflow-y-auto bg-black/95 backdrop-blur-2xl p-3 sm:p-6 md:p-8 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200"
-        >
-          {/* Main Modal Card (stop propagation so clicking inside does not close) */}
-          <div 
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-5xl rounded-3xl bg-[#0c0f1a] border border-red-500/30 shadow-2xl p-4 sm:p-6 space-y-4 my-auto relative"
-          >
-            
-            {/* Top Navigation & Header Bar */}
-            <div className="flex items-center justify-between gap-3 pb-3 border-b border-white/10">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setIsRoomModalOpen(false)}
-                  className="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-lg shadow-red-600/30 transition-transform hover:scale-105 flex items-center gap-1.5"
-                >
-                  <span>← Back to Community</span>
-                </button>
-                
-                <div className="hidden sm:block">
-                  <h3 className="font-heading font-black text-base text-white truncate max-w-md">
-                    {activeCommunity.name} • Watch Room
-                  </h3>
-                  <p className="text-[11px] text-slate-400">
-                    YouTube Stream or Local Video File
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* Source Switcher: YouTube or Local File */}
-                <div className="flex p-1 rounded-xl bg-black/60 border border-white/10">
-                  <button
-                    type="button"
-                    onClick={() => setRoomSourceType('youtube')}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                      roomSourceType === 'youtube' ? 'bg-red-600 text-white shadow' : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    YouTube
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRoomSourceType('local_file')}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                      roomSourceType === 'local_file' ? 'bg-cyan-600 text-white shadow' : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <Upload className="w-3 h-3" />
-                    <span>Local Video</span>
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => setIsRoomModalOpen(false)}
-                  className="p-2 rounded-xl bg-white/10 hover:bg-red-600/20 text-slate-300 hover:text-red-400 border border-white/10 transition-colors"
-                  title="Close Watch Room (Esc)"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-
-            {/* Video Player Container */}
-            <div className="aspect-video max-h-[62vh] w-full rounded-2xl bg-black border border-white/10 overflow-hidden shadow-2xl relative flex items-center justify-center">
-              {roomSourceType === 'youtube' ? (
-                <iframe
-                  src={`https://www.youtube.com/embed/${activeCommunity.movieRoom.youtubeId || 'TcMBFSGVi1c'}?autoplay=1&mute=0&controls=1`}
-                  title="Community Movie Stream"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full"
-                />
-              ) : (
-                localVideoUrl ? (
+          {/* CHANNEL CONTENT 3: THEATER / MOVIE ROOM (NO AUTO-PLAY BY DEFAULT) */}
+          {activeChannel === 'theater' && (
+            <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 flex flex-col justify-between">
+              
+              {/* Screen / Player Area */}
+              <div className="aspect-video w-full rounded-2xl bg-black border border-white/10 overflow-hidden shadow-2xl relative flex items-center justify-center">
+                {roomSourceType === 'youtube' && activeYoutubeId ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${activeYoutubeId}?autoplay=1&mute=0&controls=1`}
+                    title="Community Movie Stream"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                ) : roomSourceType === 'local_file' && localVideoUrl ? (
                   <video
                     src={localVideoUrl}
                     controls
@@ -488,40 +580,213 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     className="w-full h-full object-contain"
                   />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center space-y-3">
-                    <Film className="w-12 h-12 text-cyan-400 opacity-60" />
-                    <h4 className="font-bold text-sm text-white">Select a Local Downloaded Video</h4>
-                    <p className="text-xs text-slate-400 max-w-sm">
-                      Choose an MP4, WebM, or MKV video file from your computer to watch in the community room.
-                    </p>
-                    <label className="px-5 py-2.5 rounded-2xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs cursor-pointer shadow-lg transition-transform hover:scale-105">
-                      <span>Browse Video File</span>
-                      <input type="file" accept="video/*" onChange={handleLocalVideoUpload} className="hidden" />
-                    </label>
+                  /* Clean Screen: No Auto-play. User chooses what to play! */
+                  <div className="text-center p-8 space-y-4 max-w-md">
+                    <div className="w-16 h-16 rounded-3xl bg-red-600/10 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto shadow-xl">
+                      <Tv className="w-8 h-8" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-heading font-black text-lg text-white">
+                        Theater Screen Ready (No Stream Playing)
+                      </h4>
+                      <p className="text-xs text-slate-400">
+                        Choose a film from the catalog below, paste any YouTube video link, or select your own downloaded local video file.
+                      </p>
+                    </div>
                   </div>
-                )
-              )}
+                )}
+              </div>
+
+              {/* Player Controls & Stream Picker Bar */}
+              <div className="p-4 rounded-2xl bg-[#0c0f1e] border border-white/10 space-y-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  
+                  {/* Option 1: Select from Catalog */}
+                  <div className="flex-1 w-full flex gap-2">
+                    <select
+                      value={selectedCatalogMovieId}
+                      onChange={(e) => {
+                        setSelectedCatalogMovieId(e.target.value);
+                        handlePlayCatalogMovie(e.target.value);
+                      }}
+                      className="bg-[#181c30] border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500 flex-1"
+                    >
+                      <option value="">🎬 Select Movie Trailer from Catalog...</option>
+                      {allMovies.map(m => (
+                        <option key={m.id} value={m.id}>
+                          {m.title} ({m.year}) - {m.industry?.toUpperCase()}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Option 2: Upload Local Video File */}
+                  <label className="px-4 py-2 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 font-bold text-xs cursor-pointer transition-all flex items-center gap-1.5 shrink-0">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{localFileName ? localFileName.slice(0, 16) + '...' : 'Upload Local Video'}</span>
+                    <input type="file" accept="video/*" onChange={handleLocalVideoUpload} className="hidden" />
+                  </label>
+
+                  {/* Option 3: Stop / Clear Stream */}
+                  {roomSourceType !== 'none' && (
+                    <button
+                      onClick={() => { setRoomSourceType('none'); setActiveYoutubeId(''); setLocalVideoUrl(null); }}
+                      className="px-3 py-2 rounded-xl bg-white/5 hover:bg-red-600/20 text-slate-400 hover:text-red-400 text-xs font-bold border border-white/10 transition-colors"
+                    >
+                      Stop Stream
+                    </button>
+                  )}
+                </div>
+
+                {/* Option 4: Custom YouTube URL Form */}
+                <form onSubmit={handlePlayCustomYoutube} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={youtubeInputUrl}
+                    onChange={(e) => setYoutubeInputUrl(e.target.value)}
+                    placeholder="Or paste any YouTube video link (e.g. https://youtu.be/...)"
+                    className="flex-1 bg-[#181c30] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!youtubeInputUrl.trim()}
+                    className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1"
+                  >
+                    <Play className="w-3.5 h-3.5" />
+                    <span>Play</span>
+                  </button>
+                </form>
+              </div>
+
             </div>
+          )}
 
-            {/* Bottom Controls Info */}
-            <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 pt-2 border-t border-white/10">
-              <span className="flex items-center gap-2">
-                <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
-                <span>Live Room Active ({activeCommunity.memberCount.toLocaleString()} Members)</span>
-              </span>
+          {/* CHANNEL CONTENT 4: MEMBERS LIST */}
+          {activeChannel === 'members' && (
+            <div className="flex-1 p-6 overflow-y-auto space-y-4">
+              <h4 className="font-heading font-black text-sm text-white">
+                Community Members ({activeCommunity?.memberCount.toLocaleString()})
+              </h4>
 
-              {roomSourceType === 'local_file' && localFileName && (
-                <span className="font-mono text-cyan-300 text-xs truncate max-w-xs">File: {localFileName}</span>
-              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3.5 rounded-2xl bg-[#15182c] border border-white/10 flex items-center gap-3">
+                  <img src={currentUser.avatarUrl} alt={currentUser.displayName} className="w-10 h-10 rounded-xl bg-slate-800" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-xs text-white">{currentUser.displayName}</span>
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-600 text-white">You</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-amber-400">{currentUser.friendCode}</span>
+                  </div>
+                </div>
 
-              <button
-                onClick={() => setIsRoomModalOpen(false)}
-                className="px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs transition-colors"
-              >
-                Close Watch Room
+                {activeCommunity?.members.map(mem => (
+                  <div key={mem.id} className="p-3.5 rounded-2xl bg-[#15182c] border border-white/5 flex items-center gap-3">
+                    <img src={mem.avatarUrl} alt={mem.displayName} className="w-10 h-10 rounded-xl bg-slate-800" />
+                    <div className="min-w-0 flex-1">
+                      <h5 className="font-bold text-xs text-white truncate">{mem.displayName}</h5>
+                      <span className="text-[10px] font-mono text-slate-400">{mem.friendCode}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
+
+      </div>
+
+      {/* CREATE COMMUNITY MODAL */}
+      {isCreateModalOpen && (
+        <div 
+          onClick={() => setIsCreateModalOpen(false)}
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/90 backdrop-blur-2xl p-4 sm:p-6 flex flex-col items-center justify-center animate-in fade-in duration-200"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg rounded-3xl bg-[#0e111d] border border-red-500/40 shadow-2xl p-6 space-y-4 my-auto relative"
+          >
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-red-600 text-white">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <h3 className="font-heading font-black text-base text-white">Create New Film Community</h3>
+              </div>
+              <button onClick={() => setIsCreateModalOpen(false)} className="text-slate-400 hover:text-white">
+                ✕
               </button>
             </div>
 
+            <form onSubmit={handleCreateCommunitySubmit} className="space-y-3.5">
+              <div>
+                <label className="text-[11px] font-bold text-slate-300 block mb-1">Community Name</label>
+                <input
+                  type="text"
+                  required
+                  value={newCommName}
+                  onChange={(e) => setNewCommName(e.target.value)}
+                  placeholder="e.g. Marvel Multiverse Theory Club, Bengali Art Film Society"
+                  className="w-full bg-[#161a29] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-300 block mb-1">Cinema Category</label>
+                <select
+                  value={newCommCategory}
+                  onChange={(e) => setNewCommCategory(e.target.value as any)}
+                  className="w-full bg-[#161a29] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-red-500"
+                >
+                  <option value="general">General Film Lovers</option>
+                  <option value="mcu-dc">Marvel & DC Sagas</option>
+                  <option value="hollywood">Hollywood Auteurs</option>
+                  <option value="bollywood">Bollywood (Hindi)</option>
+                  <option value="tollywood">Tollywood / South Indian</option>
+                  <option value="bengali">Bengali Cinema (বাংলা)</option>
+                  <option value="international">International / Anime</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-300 block mb-1">Short Tagline</label>
+                <input
+                  type="text"
+                  value={newCommTagline}
+                  onChange={(e) => setNewCommTagline(e.target.value)}
+                  placeholder="e.g. Discussing Phase 1-6 lore and theory breakdowns"
+                  className="w-full bg-[#161a29] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-300 block mb-1">Community Description</label>
+                <textarea
+                  rows={2}
+                  value={newCommDesc}
+                  onChange={(e) => setNewCommDesc(e.target.value)}
+                  placeholder="Describe your community's purpose..."
+                  className="w-full bg-[#161a29] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500 resize-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-600/30"
+                >
+                  Create Community
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -529,4 +794,3 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
     </div>
   );
 };
-
