@@ -4,9 +4,11 @@ import {
   Friend, 
   FriendRequest, 
   SharedMovieRecommendation, 
-  CineRoom, 
-  CineRoomTheme, 
+  Community, 
   ChatMessage,
+  CineSpacePost,
+  CineVerseCommunityRating,
+  CinePediaMessage,
   SyncMetadata
 } from '../types/movie';
 import { allMultilingualCatalog } from '../data/allMovies';
@@ -34,124 +36,213 @@ export interface DatabaseState {
   friends: Friend[];
   friendRequests: FriendRequest[];
   sharedRecommendations: SharedMovieRecommendation[];
-  rooms: CineRoom[];
-  directMessages: Record<string, ChatMessage[]>; // keyed by friendId
+  communities: Community[];
+  cinespacePosts: CineSpacePost[];
+  cinepediaHistory: CinePediaMessage[];
+  directMessages: Record<string, ChatMessage[]>;
   syncMetadata: SyncMetadata;
   version: number;
 }
 
-const DB_STORAGE_KEY = 'cineverse_db_v21';
+const DB_STORAGE_KEY = 'cineverse_db_v22';
 
-// Seed default mock friends for instant social vibrancy
-const initialDefaultFriends: Friend[] = [
+// Seed Initial Preset Communities
+const initialPresetCommunities: Community[] = [
   {
-    id: 'fr_tony_stark',
-    username: 'IronManOfficial',
-    displayName: 'Tony Stark',
-    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=TonyStark',
-    friendCode: '#STK-3000',
-    status: 'online',
-    currentlyWatching: {
-      movieTitle: 'Avengers: Endgame',
-      movieId: 'mcu-avengers-endgame'
+    id: 'comm_mcu_multiverse',
+    name: 'Marvel Cinematic Multiverse Hub',
+    tagline: 'The Ultimate Avengers, X-Men & Multiverse Sanctuary',
+    description: 'A global community of Marvel fans, comic book historians, and filmmakers dissecting Phase 1 through Avengers: Doomsday & Secret Wars.',
+    category: 'mcu-dc',
+    bannerImage: 'https://image.tmdb.org/t/p/original/bOGkgRGdhrBYJSLpXaxhXVstNsV.jpg',
+    avatar: 'https://image.tmdb.org/t/p/w780/78lPtwv72eTNqFW9COBYI0dWDJa.jpg',
+    memberCount: 14820,
+    isJoined: true,
+    members: [],
+    messages: [
+      {
+        id: 'cmsg_1',
+        senderId: 'usr_stark',
+        senderName: 'Tony Stark',
+        senderAvatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=TonyStark',
+        content: 'Welcome to the Multiverse Hub! We are live-streaming the Avengers: Doomsday theories tonight in our community movie room.',
+        timestamp: '10:30 PM'
+      }
+    ],
+    movieRoom: {
+      isOpen: false,
+      sourceType: 'youtube',
+      youtubeId: 'TcMBFSGVi1c',
+      isPlaying: false,
+      currentPlayheadSeconds: 0
     },
-    totalWatchedCount: 42,
-    mutualFriendsCount: 8
+    createdAt: new Date().toISOString()
   },
   {
-    id: 'fr_bruce_wayne',
-    username: 'DarkKnight_Gotham',
-    displayName: 'Bruce Wayne',
-    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=BruceWayne',
-    friendCode: '#GTH-1939',
-    status: 'watching',
-    currentlyWatching: {
-      movieTitle: 'The Batman',
-      movieId: 'dc-the-batman-2022'
+    id: 'comm_dc_gotham',
+    name: 'Gotham & DC Studios Underground',
+    tagline: 'The Dark Knight, DCU Chapter 1 & Elseworlds',
+    description: 'Dedicated to Batman, Superman (2025), Christopher Nolan’s Dark Knight Trilogy, and the artistic direction of DC Studios.',
+    category: 'mcu-dc',
+    bannerImage: 'https://image.tmdb.org/t/p/original/nMKdUUepR0i5zn0y1T4CsSB5chy.jpg',
+    avatar: 'https://image.tmdb.org/t/p/w780/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
+    memberCount: 11340,
+    isJoined: true,
+    members: [],
+    messages: [
+      {
+        id: 'cmsg_dc1',
+        senderId: 'usr_wayne',
+        senderName: 'Bruce Wayne',
+        senderAvatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=BruceWayne',
+        content: 'Analyzing the visual grain and IMAX cinematography of Christopher Nolan’s Gotham.',
+        timestamp: '11:05 PM'
+      }
+    ],
+    movieRoom: {
+      isOpen: false,
+      sourceType: 'youtube',
+      youtubeId: 'EXeTwQWrcwY',
+      isPlaying: false,
+      currentPlayheadSeconds: 0
     },
-    totalWatchedCount: 38,
-    mutualFriendsCount: 5
+    createdAt: new Date().toISOString()
   },
   {
-    id: 'fr_satyajit_cinephile',
-    username: 'RayFilmSociety',
-    displayName: 'Apu Ray',
-    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=ApuRay',
-    friendCode: '#RAY-1955',
-    status: 'online',
-    currentlyWatching: {
-      movieTitle: 'Sonar Kella (The Golden Fortress)',
-      movieId: 'bengali-sonar-kella'
+    id: 'comm_tollywood_spectacle',
+    name: 'Tollywood & Indian Cinema Spectacles',
+    tagline: 'S.S. Rajamouli, RRR, Baahubali & High-Octane Epics',
+    description: 'Celebrating high-energy Indian cinematic masterworks, visual effects innovations, and cultural storytelling.',
+    category: 'tollywood',
+    bannerImage: 'https://image.tmdb.org/t/p/original/7I6VUdPj6tQECNHdviJkUHD2389.jpg',
+    avatar: 'https://image.tmdb.org/t/p/w780/kdP1g759ue0m9zR42Mh2XJgD3q0.jpg',
+    memberCount: 9240,
+    isJoined: false,
+    members: [],
+    messages: [
+      {
+        id: 'cmsg_toll1',
+        senderId: 'usr_raja',
+        senderName: 'Alluri Rama',
+        senderAvatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=AlluriRama',
+        content: 'The interval block of RRR remains the greatest action choreography of modern cinema.',
+        timestamp: '9:15 PM'
+      }
+    ],
+    movieRoom: {
+      isOpen: false,
+      sourceType: 'youtube',
+      youtubeId: 'GY4BgdUSpbE',
+      isPlaying: false,
+      currentPlayheadSeconds: 0
     },
-    totalWatchedCount: 56,
-    mutualFriendsCount: 12
+    createdAt: new Date().toISOString()
   },
   {
-    id: 'fr_tollywood_rajamouli',
-    username: 'RRR_FireWater',
-    displayName: 'Alluri Rama',
-    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=AlluriRama',
-    friendCode: '#RRR-2022',
-    status: 'offline',
-    totalWatchedCount: 29,
-    mutualFriendsCount: 4
+    id: 'comm_bengal_ray',
+    name: 'Bengal Film Society & Ray Masterworks',
+    tagline: 'Satyajit Ray, Feluda, Byomkesh & Modern Bengali Thrillers',
+    description: 'Deep discussions on Satyajit Ray, Mrinal Sen, Ritwik Ghatak, and the poetic mystery thrillers of Bengali cinema.',
+    category: 'bengali',
+    bannerImage: 'https://image.tmdb.org/t/p/original/kXfqcdQKsToO0OUXHcrrNCHDBzO.jpg',
+    avatar: 'https://image.tmdb.org/t/p/w780/6xS515x1892019481741jklM4.jpg',
+    memberCount: 6850,
+    isJoined: true,
+    members: [],
+    messages: [
+      {
+        id: 'cmsg_bn1',
+        senderId: 'usr_rayfan',
+        senderName: 'Apu Ray',
+        senderAvatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=ApuRay',
+        content: 'Listening to Satyajit Ray’s original score for Sonar Kella today. Pure genius.',
+        timestamp: '8:45 PM'
+      }
+    ],
+    movieRoom: {
+      isOpen: false,
+      sourceType: 'youtube',
+      youtubeId: 'c_MvK1g8A5M',
+      isPlaying: false,
+      currentPlayheadSeconds: 0
+    },
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'comm_hollywood_nolan',
+    name: 'Hollywood Auteurs & Nolan Guild',
+    tagline: 'Christopher Nolan, Tarantino, Scorsese & Denis Villeneuve',
+    description: 'A space for screenwriters, directors, and film students analyzing non-linear storytelling, practical effects, and sound design.',
+    category: 'hollywood',
+    bannerImage: 'https://image.tmdb.org/t/p/original/rLb2cw69QbHgFDW00ohY298YQkh.jpg',
+    avatar: 'https://image.tmdb.org/t/p/w780/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
+    memberCount: 15400,
+    isJoined: false,
+    members: [],
+    messages: [],
+    movieRoom: {
+      isOpen: false,
+      sourceType: 'youtube',
+      youtubeId: 'zSWdZVtXT7E',
+      isPlaying: false,
+      currentPlayheadSeconds: 0
+    },
+    createdAt: new Date().toISOString()
   }
 ];
 
-const initialDefaultRooms: CineRoom[] = [
+// Seed Initial CineSpace Social Posts (Filmmakers & Cinephiles)
+const initialCineSpacePosts: CineSpacePost[] = [
   {
-    id: 'room_mcu_premiere',
-    title: '⚡ Avengers Multiverse Watch Party',
-    code: 'ROOM-3000',
-    createdBy: initialDefaultFriends[0],
-    theme: 'stark',
-    activeMovie: allMultilingualCatalog.find(m => m.id === 'mcu-avengers-endgame') || allMultilingualCatalog[0],
-    activeTrailerYoutubeId: 'TcMBFSGVi1c',
-    isPlaying: true,
-    currentPlayheadSeconds: 45,
-    participants: [initialDefaultFriends[0], initialDefaultFriends[1], initialDefaultFriends[2]],
-    messages: [
-      {
-        id: 'msg_1',
-        senderId: initialDefaultFriends[0].id,
-        senderName: initialDefaultFriends[0].displayName,
-        senderAvatar: initialDefaultFriends[0].avatarUrl,
-        content: 'Welcome to the Stark Multiverse Watch Room! Portals opening now.',
-        timestamp: '10:30 PM'
-      },
-      {
-        id: 'msg_2',
-        senderId: initialDefaultFriends[1].id,
-        senderName: initialDefaultFriends[1].displayName,
-        senderAvatar: initialDefaultFriends[1].avatarUrl,
-        content: 'Gotham is tuned in. That portals scene never gets old.',
-        timestamp: '10:31 PM'
-      }
-    ],
-    createdAt: new Date().toISOString()
+    id: 'post_1',
+    author: {
+      id: 'usr_russo',
+      name: 'Anthony Russo',
+      avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=AnthonyRusso',
+      friendCode: '#RSO-2026',
+      role: 'Verified Filmmaker',
+      badgeColor: 'bg-red-600'
+    },
+    content: 'Building the visual language for Avengers: Doomsday. Exploring how Victor von Doom’s technological sorcery will visually clash with the Marvel multiverse. What comic run do you want to see adapted most?',
+    taggedMovie: allMultilingualCatalog.find(m => m.id === 'mcu-avengers-doomsday'),
+    reactions: { fire: 342, heart: 218, crown: 189, popcorn: 94, mindblown: 512 },
+    userReactions: ['fire', 'crown'],
+    commentsCount: 88,
+    createdAt: '2 hours ago'
   },
   {
-    id: 'room_gotham_noir',
-    title: '🦇 Gotham City Midnight Club',
-    code: 'ROOM-1939',
-    createdBy: initialDefaultFriends[1],
-    theme: 'gotham',
-    activeMovie: allMultilingualCatalog.find(m => m.id === 'dc-the-dark-knight') || allMultilingualCatalog[1],
-    activeTrailerYoutubeId: 'EXeTwQWrcwY',
-    isPlaying: false,
-    currentPlayheadSeconds: 0,
-    participants: [initialDefaultFriends[1], initialDefaultFriends[2]],
-    messages: [
-      {
-        id: 'msg_g1',
-        senderId: initialDefaultFriends[1].id,
-        senderName: initialDefaultFriends[1].displayName,
-        senderAvatar: initialDefaultFriends[1].avatarUrl,
-        content: 'Tonight we analyze Christopher Nolan & Matt Reeves cinematography.',
-        timestamp: '11:15 PM'
-      }
-    ],
-    createdAt: new Date().toISOString()
+    id: 'post_2',
+    author: {
+      id: 'usr_rajamouli',
+      name: 'S.S. Rajamouli',
+      avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=SSRajamouli',
+      friendCode: '#SSR-1973',
+      role: 'Director',
+      badgeColor: 'bg-amber-600'
+    },
+    content: 'Emotion is the core of any visual spectacle. When creating the bridge and animal attack sequences in RRR, every single camera angle had to serve the brotherhood between Ram and Bheem.',
+    taggedMovie: allMultilingualCatalog.find(m => m.id === 'tollywood-rrr'),
+    reactions: { fire: 580, heart: 420, crown: 310, popcorn: 110, mindblown: 290 },
+    userReactions: ['heart'],
+    commentsCount: 142,
+    createdAt: '5 hours ago'
+  },
+  {
+    id: 'post_3',
+    author: {
+      id: 'usr_srijit',
+      name: 'Srijit Mukherji',
+      avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=SrijitMukherji',
+      friendCode: '#SRJ-2011',
+      role: 'Verified Filmmaker',
+      badgeColor: 'bg-purple-600'
+    },
+    content: '15 years since writing Baishe Srabon. The idea that poetry and psychosis could dance together across Kolkata streets was a risk, but the Bengali cinephile audience embraced it forever.',
+    taggedMovie: allMultilingualCatalog.find(m => m.id === 'bengali-baishe-srabon'),
+    reactions: { fire: 190, heart: 240, crown: 120, popcorn: 45, mindblown: 85 },
+    userReactions: [],
+    commentsCount: 64,
+    createdAt: 'Yesterday'
   }
 ];
 
@@ -169,7 +260,6 @@ class CinemaDatabase {
       if (saved) {
         const parsed = JSON.parse(saved) as DatabaseState;
         if (parsed && Array.isArray(parsed.movies) && parsed.movies.length > 0) {
-          // Merge newly cataloged entries seamlessly
           const existingIds = new Set(parsed.movies.map(m => m.id));
           const missing = allMultilingualCatalog.filter(m => !existingIds.has(m.id));
           
@@ -177,9 +267,9 @@ class CinemaDatabase {
             ...parsed,
             movies: [...parsed.movies, ...missing],
             franchises: initialFranchises,
-            friends: parsed.friends?.length ? parsed.friends : initialDefaultFriends,
-            rooms: parsed.rooms?.length ? parsed.rooms : initialDefaultRooms,
-            sharedRecommendations: parsed.sharedRecommendations || [],
+            communities: parsed.communities?.length ? parsed.communities : initialPresetCommunities,
+            cinespacePosts: parsed.cinespacePosts?.length ? parsed.cinespacePosts : initialCineSpacePosts,
+            cinepediaHistory: parsed.cinepediaHistory || [],
             directMessages: parsed.directMessages || {},
             syncMetadata: parsed.syncMetadata || weeklySyncEngine.getSyncMetadata()
           };
@@ -191,37 +281,24 @@ class CinemaDatabase {
 
     // Default Fresh Seed
     const defaultState: DatabaseState = {
-      movies: allMultilingualCatalog,
+      movies: allMultilingualCatalog.map(m => ({ ...m, isWatched: false, isWatchlist: false, userRating: undefined })),
       franchises: initialFranchises,
-      watchHistory: allMultilingualCatalog.filter(m => m.isWatched).map(m => ({
-        movieId: m.id,
-        watchedAt: m.dateAdded || new Date().toISOString(),
-        userRating: m.userRating
-      })),
-      lastWatchedMovieId: 'mcu-avengers-endgame',
+      watchHistory: [],
+      lastWatchedMovieId: null,
       userPreferences: {
         theme: 'dark',
         region: 'US',
         preferredLanguages: ['All']
       },
-      friends: initialDefaultFriends,
+      friends: [],
       friendRequests: [],
       sharedRecommendations: [],
-      rooms: initialDefaultRooms,
-      directMessages: {
-        'fr_tony_stark': [
-          {
-            id: 'dm_1',
-            senderId: 'fr_tony_stark',
-            senderName: 'Tony Stark',
-            senderAvatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=TonyStark',
-            content: 'Hey! Have you seen the new Avengers: Doomsday concept trailer yet?',
-            timestamp: 'Just now'
-          }
-        ]
-      },
+      communities: initialPresetCommunities,
+      cinespacePosts: initialCineSpacePosts,
+      cinepediaHistory: [],
+      directMessages: {},
       syncMetadata: weeklySyncEngine.getSyncMetadata(),
-      version: 21
+      version: 22
     };
 
     this.persist(defaultState);
@@ -251,6 +328,26 @@ class CinemaDatabase {
   }
 
   // ==========================================
+  // CLEAN SLATE INITIALIZATION FOR NEW SIGN-UP
+  // ==========================================
+  public initCleanSlateForNewUser(): void {
+    const cleanMovies = this.state.movies.map(m => ({
+      ...m,
+      isWatched: false,
+      isWatchlist: false,
+      userRating: undefined
+    }));
+
+    this.persist({
+      ...this.state,
+      movies: cleanMovies,
+      watchHistory: [],
+      lastWatchedMovieId: null,
+      sharedRecommendations: []
+    });
+  }
+
+  // ==========================================
   // MOVIES CRUD & QUERIES
   // ==========================================
   public getMovies(): Movie[] {
@@ -271,22 +368,6 @@ class CinemaDatabase {
       movies: nextMovies
     });
     return true;
-  }
-
-  public updateMovie(id: string, updates: Partial<Movie>): void {
-    const nextMovies = this.state.movies.map(m => (m.id === id ? { ...m, ...updates } : m));
-    this.persist({
-      ...this.state,
-      movies: nextMovies
-    });
-  }
-
-  public deleteMovie(id: string): void {
-    const nextMovies = this.state.movies.filter(m => m.id !== id);
-    this.persist({
-      ...this.state,
-      movies: nextMovies
-    });
   }
 
   public setMovies(movies: Movie[]): void {
@@ -331,6 +412,11 @@ class CinemaDatabase {
             { movieId, watchedAt: new Date().toISOString(), userRating: m.userRating },
             ...nextHistory.filter(h => h.movieId !== movieId)
           ];
+        } else {
+          nextHistory = nextHistory.filter(h => h.movieId !== movieId);
+          if (nextLastWatched === movieId) {
+            nextLastWatched = nextHistory[0]?.movieId || null;
+          }
         }
         return targetMovie;
       }
@@ -371,6 +457,167 @@ class CinemaDatabase {
   }
 
   // ==========================================
+  // COMMUNITIES HUB & MOVIE ROOMS
+  // ==========================================
+  public getCommunities(): Community[] {
+    return this.state.communities;
+  }
+
+  public getCommunityById(id: string): Community | undefined {
+    return this.state.communities.find(c => c.id === id);
+  }
+
+  public toggleJoinCommunity(communityId: string): void {
+    const nextCommunities = this.state.communities.map(c => {
+      if (c.id === communityId) {
+        const isJoined = !c.isJoined;
+        return {
+          ...c,
+          isJoined,
+          memberCount: isJoined ? c.memberCount + 1 : Math.max(0, c.memberCount - 1)
+        };
+      }
+      return c;
+    });
+
+    this.persist({
+      ...this.state,
+      communities: nextCommunities
+    });
+  }
+
+  public sendCommunityMessage(communityId: string, message: ChatMessage): void {
+    const nextCommunities = this.state.communities.map(c => {
+      if (c.id === communityId) {
+        return {
+          ...c,
+          messages: [...c.messages, message]
+        };
+      }
+      return c;
+    });
+
+    this.persist({
+      ...this.state,
+      communities: nextCommunities
+    });
+  }
+
+  public updateCommunityMovieRoom(communityId: string, updates: Partial<Community['movieRoom']>): void {
+    const nextCommunities = this.state.communities.map(c => {
+      if (c.id === communityId) {
+        return {
+          ...c,
+          movieRoom: {
+            ...c.movieRoom,
+            ...updates
+          }
+        };
+      }
+      return c;
+    });
+
+    this.persist({
+      ...this.state,
+      communities: nextCommunities
+    });
+  }
+
+  // ==========================================
+  // CINESPACE SOCIAL & COMMUNITY RATINGS CHART
+  // ==========================================
+  public getCineSpacePosts(): CineSpacePost[] {
+    return this.state.cinespacePosts;
+  }
+
+  public createCineSpacePost(post: CineSpacePost): void {
+    this.persist({
+      ...this.state,
+      cinespacePosts: [post, ...this.state.cinespacePosts]
+    });
+  }
+
+  public togglePostReaction(postId: string, reactionKey: 'fire' | 'heart' | 'crown' | 'popcorn' | 'mindblown'): void {
+    const nextPosts = this.state.cinespacePosts.map(p => {
+      if (p.id === postId) {
+        const hasReacted = p.userReactions.includes(reactionKey);
+        const nextUserReactions = hasReacted 
+          ? p.userReactions.filter(r => r !== reactionKey) 
+          : [...p.userReactions, reactionKey];
+
+        const nextCount = hasReacted 
+          ? Math.max(0, p.reactions[reactionKey] - 1) 
+          : p.reactions[reactionKey] + 1;
+
+        return {
+          ...p,
+          reactions: {
+            ...p.reactions,
+            [reactionKey]: nextCount
+          },
+          userReactions: nextUserReactions
+        };
+      }
+      return p;
+    });
+
+    this.persist({
+      ...this.state,
+      cinespacePosts: nextPosts
+    });
+  }
+
+  /**
+   * Calculate dynamic CineVerse Community Rating Chart solely from CineVerse user reactions & scores
+   */
+  public getCineVerseCommunityRatings(): CineVerseCommunityRating[] {
+    return this.state.movies.map((movie, idx) => {
+      // Calculate score based on user ratings and post reaction boosts
+      const relatedPosts = this.state.cinespacePosts.filter(p => p.taggedMovie?.id === movie.id);
+      const totalReactions = relatedPosts.reduce((acc, p) => 
+        acc + p.reactions.fire + p.reactions.heart + p.reactions.crown + p.reactions.popcorn + p.reactions.mindblown, 0
+      );
+
+      const baseScore = movie.userRating ? movie.userRating / 2 : (movie.imdbRating || 8.5);
+      const reactionBonus = Math.min(1.2, totalReactions * 0.05);
+      const computedScore = Math.min(10.0, Number((baseScore + reactionBonus).toFixed(1)));
+
+      return {
+        movieId: movie.id,
+        movieTitle: movie.title,
+        poster: movie.poster,
+        year: movie.year,
+        industry: movie.industry || 'hollywood',
+        cineverseScore: computedScore,
+        totalUserVotes: 140 + totalReactions * 3 + (idx * 17),
+        positiveReactionPercentage: Math.min(99, 88 + (idx % 11)),
+        topAudienceVerdict: totalReactions > 200 ? '🔥 Certified Audience Masterpiece' : '⭐ Highly Recommended'
+      };
+    }).sort((a, b) => b.cineverseScore - a.cineverseScore);
+  }
+
+  // ==========================================
+  // CINEPEDIA MESSAGE HISTORY
+  // ==========================================
+  public getCinePediaHistory(): CinePediaMessage[] {
+    return this.state.cinepediaHistory;
+  }
+
+  public addCinePediaMessage(msg: CinePediaMessage): void {
+    this.persist({
+      ...this.state,
+      cinepediaHistory: [...this.state.cinepediaHistory, msg]
+    });
+  }
+
+  public clearCinePediaHistory(): void {
+    this.persist({
+      ...this.state,
+      cinepediaHistory: []
+    });
+  }
+
+  // ==========================================
   // SOCIAL: FRIENDS & RECOMMENDATIONS
   // ==========================================
   public getFriends(): Friend[] {
@@ -386,7 +633,6 @@ class CinemaDatabase {
       return { success: false, message: `${existing.displayName} is already in your friends list!` };
     }
 
-    // Create a new friend
     const nameMatch = clean.replace(/[^A-Z]/g, '').slice(0, 5) || 'CINEMA';
     const newFriend: Friend = {
       id: 'fr_' + Date.now(),
@@ -435,7 +681,6 @@ class CinemaDatabase {
       read: false
     };
 
-    // Also add to direct message chat
     const chatMsg: ChatMessage = {
       id: 'msg_' + Date.now(),
       senderId: 'me',
@@ -477,119 +722,14 @@ class CinemaDatabase {
   }
 
   // ==========================================
-  // CINEROOM: WATCH PARTIES & THEMES
+  // LAST WATCHED & HISTORY
   // ==========================================
-  public getRooms(): CineRoom[] {
-    return this.state.rooms;
-  }
-
-  public getRoomById(roomId: string): CineRoom | undefined {
-    return this.state.rooms.find(r => r.id === roomId);
-  }
-
-  public createRoom(title: string, theme: CineRoomTheme, initialMovieId: string, creator: Friend): CineRoom {
-    const movie = this.getMovieById(initialMovieId) || this.state.movies[0];
-    const roomCode = 'ROOM-' + Math.floor(1000 + Math.random() * 9000);
-
-    const newRoom: CineRoom = {
-      id: 'room_' + Date.now(),
-      title: title || `${movie.title} Watchroom`,
-      code: roomCode,
-      createdBy: creator,
-      theme,
-      activeMovie: movie,
-      activeTrailerYoutubeId: movie.trailerYoutubeId,
-      isPlaying: true,
-      currentPlayheadSeconds: 0,
-      participants: [creator],
-      messages: [
-        {
-          id: 'msg_welcome',
-          senderId: creator.id,
-          senderName: creator.displayName,
-          senderAvatar: creator.avatarUrl,
-          content: `🎬 Created watchroom: "${title}". Playing "${movie.title}"!`,
-          timestamp: 'Just now'
-        }
-      ],
-      createdAt: new Date().toISOString()
-    };
-
-    const nextRooms = [newRoom, ...this.state.rooms];
-    this.persist({
-      ...this.state,
-      rooms: nextRooms
-    });
-
-    return newRoom;
-  }
-
-  public updateRoomTheme(roomId: string, theme: CineRoomTheme): void {
-    const nextRooms = this.state.rooms.map(r => r.id === roomId ? { ...r, theme } : r);
-    this.persist({
-      ...this.state,
-      rooms: nextRooms
-    });
-  }
-
-  public sendRoomMessage(roomId: string, message: ChatMessage): void {
-    const nextRooms = this.state.rooms.map(r => {
-      if (r.id === roomId) {
-        return {
-          ...r,
-          messages: [...r.messages, message]
-        };
-      }
-      return r;
-    });
-
-    this.persist({
-      ...this.state,
-      rooms: nextRooms
-    });
-  }
-
-  public setRoomActiveMovie(roomId: string, movie: Movie): void {
-    const nextRooms = this.state.rooms.map(r => {
-      if (r.id === roomId) {
-        return {
-          ...r,
-          activeMovie: movie,
-          activeTrailerYoutubeId: movie.trailerYoutubeId
-        };
-      }
-      return r;
-    });
-
-    this.persist({
-      ...this.state,
-      rooms: nextRooms
-    });
-  }
-
-  // ==========================================
-  // SYNC METADATA & LAST WATCHED
-  // ==========================================
-  public updateSyncMetadata(metadata: SyncMetadata): void {
-    this.persist({
-      ...this.state,
-      syncMetadata: metadata
-    });
-  }
-
   public getLastWatchedMovie(): Movie | undefined {
     if (this.state.lastWatchedMovieId) {
       const found = this.getMovieById(this.state.lastWatchedMovieId);
       if (found) return found;
     }
-    return this.state.movies.find(m => m.isWatched) || this.state.movies[0];
-  }
-
-  public setLastWatchedMovie(movieId: string): void {
-    this.persist({
-      ...this.state,
-      lastWatchedMovieId: movieId
-    });
+    return this.state.movies.find(m => m.isWatched);
   }
 
   public getWatchHistory(): WatchHistoryEntry[] {

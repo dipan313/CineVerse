@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RmovieTab, UserProfile, SyncMetadata } from '../types/movie';
+import { RmovieTab, UserProfile } from '../types/movie';
 import { 
   Film, 
   Search, 
@@ -7,8 +7,6 @@ import {
   CheckCircle, 
   Layers, 
   Trophy, 
-  Moon, 
-  Sun, 
   Users, 
   Tv, 
   Zap, 
@@ -16,8 +14,9 @@ import {
   LogOut, 
   Copy, 
   Check, 
+  Bot,
   Sparkles,
-  Plus
+  Eye
 } from 'lucide-react';
 import { weeklySyncEngine } from '../services/weeklySyncEngine';
 import { cinemaDb } from '../db/cinemaDatabase';
@@ -34,6 +33,7 @@ interface NavbarProps {
   currentUser: UserProfile;
   onSignOut: () => void;
   onOpenAutoImport: () => void;
+  onOpenCinePedia: () => void;
   onSyncStarted: () => void;
 }
 
@@ -44,16 +44,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   watchedCount,
   searchQuery,
   setSearchQuery,
-  isDarkMode,
-  setIsDarkMode,
   currentUser,
   onSignOut,
-  onOpenAutoImport,
+  onOpenCinePedia,
   onSyncStarted
 }) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
-  const syncMeta = cinemaDb.getFriends(); // sync status is maintained in cinemaDb
 
   const handleManualSync = async () => {
     if (isSyncing) return;
@@ -94,7 +91,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="font-heading font-black text-xl tracking-tight text-white flex items-center gap-1">
                 CINE<span className="text-red-500">VERSE</span>
               </div>
-              <p className="text-[9px] font-mono tracking-widest text-slate-400">SUPERHERO & GLOBAL</p>
+              <p className="text-[9px] font-mono tracking-widest text-slate-400">GLOBAL CINEMA & SOCIAL</p>
             </div>
           </div>
 
@@ -137,50 +134,31 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <button
-              onClick={() => setActiveTab('social')}
+              onClick={() => setActiveTab('watched')}
               className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeTab === 'social'
+                activeTab === 'watched'
                   ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Users className="w-3.5 h-3.5 text-red-400" />
-              <span>Friends & Chat</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('rooms')}
-              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeTab === 'rooms'
-                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Tv className="w-3.5 h-3.5 text-cyan-400" />
-              <span>CineRooms</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('franchises')}
-              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeTab === 'franchises'
-                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>Sagas</span>
+              <Eye className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Watched</span>
+              {watchedCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-emerald-500 text-white font-black text-[9px] flex items-center justify-center">
+                  {watchedCount}
+                </span>
+              )}
             </button>
 
             <button
               onClick={() => setActiveTab('watchlist')}
-              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 relative ${
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                 activeTab === 'watchlist'
                   ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Bookmark className="w-3.5 h-3.5" />
+              <Bookmark className="w-3.5 h-3.5 text-amber-400" />
               <span>Watchlist</span>
               {watchlistCount > 0 && (
                 <span className="w-4 h-4 rounded-full bg-amber-500 text-black font-black text-[9px] flex items-center justify-center">
@@ -189,22 +167,53 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </button>
 
+            <button
+              onClick={() => setActiveTab('cinespace')}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activeTab === 'cinespace'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-pink-400" />
+              <span>CineSpace</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('communities')}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activeTab === 'communities'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Communities</span>
+            </button>
+
           </div>
 
-          {/* Right Action Tools: 7-Day Sync, User Profile & Actions */}
+          {/* Right Action Tools */}
           <div className="flex items-center gap-2.5">
             
-            {/* 7-Day Automated Sync Trigger */}
+            {/* CinePedia AI Fact Checker Button */}
+            <button
+              onClick={onOpenCinePedia}
+              className="px-3 py-2 rounded-xl bg-gradient-to-r from-cyan-600/20 to-blue-600/20 hover:from-cyan-600/30 hover:to-blue-600/30 border border-cyan-500/40 text-cyan-300 font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-cyan-950/30 transition-all hover:scale-105"
+              title="Open CinePedia AI Fact-Checker"
+            >
+              <Bot className="w-4 h-4 text-cyan-400" />
+              <span className="hidden sm:inline">CinePedia AI</span>
+            </button>
+
+            {/* 7-Day Sync Trigger */}
             <button
               onClick={handleManualSync}
               disabled={isSyncing}
               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all text-xs flex items-center gap-1.5"
-              title="7-Day Automated Web Sync (Wikipedia & TMDB)"
+              title="7-Day Automated Web Sync"
             >
               <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${isSyncing ? 'animate-spin' : ''}`} />
-              <span className="hidden xl:inline text-[11px] font-bold">
-                {isSyncing ? 'Syncing...' : '7-Day Sync'}
-              </span>
             </button>
 
             {/* User Profile Pill & Friend Code */}
@@ -215,7 +224,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="w-7 h-7 rounded-xl bg-slate-800"
               />
               <div className="hidden sm:block text-left pr-1">
-                <div className="font-bold text-[11px] text-white truncate max-w-[90px]">
+                <div className="font-bold text-[11px] text-white truncate max-w-[85px]">
                   {currentUser.displayName}
                 </div>
                 <button

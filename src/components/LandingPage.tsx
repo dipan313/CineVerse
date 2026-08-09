@@ -6,15 +6,14 @@ import {
   Users, 
   Tv, 
   RefreshCw, 
-  Play, 
   ArrowRight, 
-  Star, 
-  Flame, 
   Zap, 
   Globe, 
-  Lock 
+  Lock,
+  Bot
 } from 'lucide-react';
 import { authService } from '../db/supabaseClient';
+import { cinemaDb } from '../db/cinemaDatabase';
 
 interface LandingPageProps {
   onAuthenticated: () => void;
@@ -46,6 +45,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthenticated }) => 
           setLoading(false);
           return;
         }
+        // Initialize 100% clean slate (no watch history, no watchlist)
+        cinemaDb.initCleanSlateForNewUser();
       } else {
         const res = await authService.signIn(email, password);
         if (res.error) {
@@ -72,32 +73,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthenticated }) => 
       title: 'MCU & DC Universe Timelines',
       desc: 'Complete Phase 1–6 chronology, Avengers: Doomsday, and DC Elseworlds with official theatrical 4K posters.',
       icon: <Zap className="w-6 h-6 text-amber-400" />,
-      badge: 'Multiverse Engine'
+      badge: 'Multiverse Registry'
     },
     {
-      title: 'Global Multi-Industry Catalog',
-      desc: 'Curated masterworks across Hollywood, Bollywood, Tollywood (RRR, Baahubali), and Bengali cinema (Ray classics & modern thrillers).',
-      icon: <Globe className="w-6 h-6 text-red-500" />,
-      badge: 'Hollywood to Bengal'
+      title: 'CineSpace Filmmaker Platform',
+      desc: 'Connect directly with directors, critics, and audience cinephiles. Live reaction-based community rating chart.',
+      icon: <Sparkles className="w-6 h-6 text-pink-400" />,
+      badge: 'Social Media'
     },
     {
-      title: 'CineRoom Watch Parties',
-      desc: 'Create private watchrooms with friends, synchronized trailer streams, and dynamic Marvel, Gotham, and Tollywood themes.',
-      icon: <Tv className="w-6 h-6 text-cyan-400" />,
-      badge: 'Live Sync'
+      title: 'Communities & Group Rooms',
+      desc: 'Dedicated film communities with voice message notes, YouTube streams, and local downloaded video file rooms.',
+      icon: <Users className="w-6 h-6 text-cyan-400" />,
+      badge: 'Voice & Rooms'
     },
     {
-      title: 'Automated 7-Day Web Sync',
-      desc: 'Autonomous background scraping from Wikipedia & TMDB keeps ratings, streaming availability, and posters fresh every 7 days.',
-      icon: <RefreshCw className="w-6 h-6 text-emerald-400" />,
-      badge: 'Auto Scraper'
+      title: 'CinePedia AI Fact-Checker',
+      desc: 'Specialized film lore AI powered by Gemini & Groq. Instant verification of box office records, canon, and trivia.',
+      icon: <Bot className="w-6 h-6 text-emerald-400" />,
+      badge: 'CinePedia AI'
     }
   ];
 
   return (
     <div className="min-h-screen bg-[#07080d] text-slate-100 selection:bg-red-600 selection:text-white relative overflow-hidden font-sans">
       
-      {/* Dynamic Ambient Background Glows */}
+      {/* Ambient Background Glows */}
       <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-red-600/15 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute top-1/3 right-10 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[130px] pointer-events-none" />
       <div className="absolute bottom-10 left-10 w-[600px] h-[600px] bg-cyan-600/10 rounded-full blur-[160px] pointer-events-none" />
@@ -115,7 +116,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthenticated }) => 
                 PRO
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 tracking-wider font-mono">GLOBAL CINEMA & WATCH ROOMS</p>
+            <p className="text-[10px] text-slate-400 tracking-wider font-mono">GLOBAL CINEMA & COMMUNITIES</p>
           </div>
         </div>
 
@@ -146,10 +147,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthenticated }) => 
                 <span className="bg-gradient-to-r from-red-500 via-amber-400 to-red-400 bg-clip-text text-transparent">
                   Superhero & Global
                 </span> <br />
-                Cinema Experience.
+                Cinema Platform.
               </h1>
               <p className="text-slate-400 text-sm sm:text-base max-w-xl leading-relaxed">
-                Connect with friends, share recommendations with one click, enter immersive themed CineRooms, and experience the MCU, DC, Hollywood, Bollywood, Tollywood, and Bengali film registries with verified theatrical posters and weekly automated updates.
+                Join film communities, exchange voice notes, watch group streams from YouTube or local video files, share thoughts in the CineSpace filmmaker feed, and verify trivia with CinePedia AI.
               </p>
             </div>
 
@@ -182,11 +183,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthenticated }) => 
             <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-white/10 text-xs text-slate-400">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                <span className="text-slate-300 font-semibold">Supabase Powered</span>
+                <span className="text-slate-300 font-semibold">Supabase & Gemini Enabled</span>
               </div>
-              <div>⚡ 7-Day Scraper Enabled</div>
-              <div>🍿 Private Watch Rooms</div>
-              <div>🛡️ Data Authenticity Verified</div>
+              <div>⚡ 7-Day Auto Scraper</div>
+              <div>🎙️ Community Voice Notes</div>
+              <div>🍿 Local Video File Rooms</div>
             </div>
 
           </div>
@@ -195,18 +196,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthenticated }) => 
           <div className="lg:col-span-5">
             <div className="relative rounded-3xl bg-[#0f121d]/90 border border-white/10 p-8 shadow-2xl backdrop-blur-xl space-y-6">
               
-              {/* Top Form Header */}
+              {/* Form Header */}
               <div className="text-center space-y-2">
                 <div className="inline-flex p-3 rounded-2xl bg-gradient-to-tr from-red-600 to-amber-500 text-white shadow-lg shadow-red-600/30">
                   <Lock className="w-6 h-6" />
                 </div>
                 <h3 className="font-heading font-extrabold text-2xl text-white">
-                  {authMode === 'signin' ? 'Welcome Back to CineVerse' : 'Create Your Cinema Profile'}
+                  {authMode === 'signin' ? 'Welcome to CineVerse' : 'Create Your Cinema Profile'}
                 </h3>
                 <p className="text-xs text-slate-400">
                   {authMode === 'signin' 
-                    ? 'Log in to access your watchlists, friends, and CineRooms' 
-                    : 'Get your unique #CINE friend code and start watch parties'}
+                    ? 'Log in to access your personal watched list, communities, and CineSpace' 
+                    : 'Get your unique #CINE friend code and a clean fresh watch list'}
                 </p>
               </div>
 
@@ -232,7 +233,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthenticated }) => 
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  New Account
+                  New Account (Fresh Slate)
                 </button>
               </div>
 
@@ -257,7 +258,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthenticated }) => 
                       required
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="e.g. Tony Stark, Bruce Wayne"
+                      placeholder="e.g. Tony Stark, Christopher Nolan"
                       className="w-full bg-[#161a29] border border-white/10 rounded-xl px-3.5 py-3 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500 transition-colors"
                     />
                   </div>
@@ -297,7 +298,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onAuthenticated }) => 
                     disabled={loading}
                     className="w-full py-3.5 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-extrabold text-xs shadow-xl shadow-red-600/30 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50"
                   >
-                    {loading ? 'Authenticating...' : (authMode === 'signin' ? 'Sign In to CineVerse' : 'Create Account & Generate Friend Code')}
+                    {loading ? 'Authenticating...' : (authMode === 'signin' ? 'Sign In to CineVerse' : 'Create Clean Account & Friend Code')}
                   </button>
 
                   <div className="relative flex py-1 items-center">

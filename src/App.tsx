@@ -6,17 +6,18 @@ import { Navbar } from './components/Navbar';
 import { HomeView } from './components/HomeView';
 import { UniverseTimelineView } from './components/UniverseTimelineView';
 import { FranchisesView } from './components/FranchisesView';
-import { FriendsView } from './components/FriendsView';
-import { CineRoomView } from './components/CineRoomView';
+import { CommunitiesView } from './components/CommunitiesView';
+import { CineSpaceSocialView } from './components/CineSpaceSocialView';
 import { WatchlistView } from './components/WatchlistView';
 import { WatchedView } from './components/WatchedView';
 import { LeaderboardView } from './components/LeaderboardView';
 import { MovieDetailsModal } from './components/MovieDetailsModal';
 import { TrailerModal } from './components/TrailerModal';
 import { ShareMovieModal } from './components/ShareMovieModal';
+import { CinePediaModal } from './components/CinePediaModal';
 import { AddMovieAutoImportModal } from './components/AddMovieAutoImportModal';
 import { LandingPage } from './components/LandingPage';
-import { Check, RefreshCw } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => authService.getCurrentUser());
@@ -30,10 +31,12 @@ export const App: React.FC = () => {
     friends: cinemaDb.getFriends(),
     friendRequests: [],
     sharedRecommendations: [],
-    rooms: cinemaDb.getRooms(),
+    communities: cinemaDb.getCommunities(),
+    cinespacePosts: cinemaDb.getCineSpacePosts(),
+    cinepediaHistory: cinemaDb.getCinePediaHistory(),
     directMessages: {},
     syncMetadata: cinemaDb.getFriends() as any,
-    version: 21
+    version: 22
   }));
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,6 +46,7 @@ export const App: React.FC = () => {
   const [activeTrailerId, setActiveTrailerId] = useState<string | null>(null);
   const [shareMovieTarget, setShareMovieTarget] = useState<Movie | null>(null);
   const [isAutoImportOpen, setIsAutoImportOpen] = useState(false);
+  const [isCinePediaOpen, setIsCinePediaOpen] = useState(false);
   const [syncToastMessage, setSyncToastMessage] = useState<string | null>(null);
 
   // Subscribe to Auth changes
@@ -142,6 +146,7 @@ export const App: React.FC = () => {
         currentUser={currentUser}
         onSignOut={() => authService.signOut()}
         onOpenAutoImport={() => setIsAutoImportOpen(true)}
+        onOpenCinePedia={() => setIsCinePediaOpen(true)}
         onSyncStarted={handleSyncNotification}
       />
 
@@ -183,30 +188,13 @@ export const App: React.FC = () => {
           />
         )}
 
-        {activeTab === 'social' && (
-          <FriendsView
-            currentUser={currentUser}
-            onSelectMovie={(m) => setSelectedMovie(m)}
-            onToggleWatchlist={handleToggleWatchlist}
-            onToggleWatched={handleToggleWatched}
-          />
-        )}
-
-        {activeTab === 'rooms' && (
-          <CineRoomView
-            currentUser={currentUser}
-            allMovies={movies}
-            onSelectMovie={(m) => setSelectedMovie(m)}
-          />
-        )}
-
-        {activeTab === 'franchises' && (
-          <FranchisesView
-            franchises={franchises}
+        {activeTab === 'watched' && (
+          <WatchedView
             movies={movies}
             onSelectMovie={(m) => setSelectedMovie(m)}
             onToggleWatchlist={handleToggleWatchlist}
             onToggleWatched={handleToggleWatched}
+            onRate={handleRate}
           />
         )}
 
@@ -221,13 +209,29 @@ export const App: React.FC = () => {
           />
         )}
 
-        {activeTab === 'watched' && (
-          <WatchedView
-            movies={movies.filter(m => m.isWatched)}
+        {activeTab === 'cinespace' && (
+          <CineSpaceSocialView
+            currentUser={currentUser}
+            allMovies={movies}
+            onSelectMovie={(m) => setSelectedMovie(m)}
+          />
+        )}
+
+        {activeTab === 'communities' && (
+          <CommunitiesView
+            currentUser={currentUser}
+            allMovies={movies}
+            onSelectMovie={(m) => setSelectedMovie(m)}
+          />
+        )}
+
+        {activeTab === 'franchises' && (
+          <FranchisesView
+            franchises={franchises}
+            movies={movies}
             onSelectMovie={(m) => setSelectedMovie(m)}
             onToggleWatchlist={handleToggleWatchlist}
             onToggleWatched={handleToggleWatched}
-            onRate={handleRate}
           />
         )}
 
@@ -271,6 +275,12 @@ export const App: React.FC = () => {
           senderAvatar={currentUser.avatarUrl}
         />
       )}
+
+      {/* CinePedia AI Fact-Checker Modal */}
+      <CinePediaModal
+        isOpen={isCinePediaOpen}
+        onClose={() => setIsCinePediaOpen(false)}
+      />
 
       {/* Auto-Import / Scraper Modal */}
       <AddMovieAutoImportModal

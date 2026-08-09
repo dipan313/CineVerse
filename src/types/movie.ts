@@ -106,6 +106,16 @@ export interface SharedMovieRecommendation {
   read: boolean;
 }
 
+export interface VoiceMessage {
+  id: string;
+  audioBlobUrl: string;
+  durationSeconds: number;
+  senderId: string;
+  senderName: string;
+  senderAvatar: string;
+  timestamp: string;
+}
+
 export interface ChatMessage {
   id: string;
   senderId: string;
@@ -114,16 +124,17 @@ export interface ChatMessage {
   content: string;
   timestamp: string;
   movieAttachment?: Movie;
+  voiceMessage?: VoiceMessage;
   themeReaction?: string;
 }
 
 export type CineRoomTheme = 
-  | 'stark'          // Stark Arc Reactor (Crimson & Gold glow)
-  | 'gotham'         // Gotham Dark Knight Noir (Obsidian & Amber)
-  | 'tollywood-gold' // Royal Tollywood (Regal Gold & Ruby)
-  | 'bengal-art'     // Bengal Heritage (Artistic Sepia & Amber)
-  | 'quantum'        // Quantum Realm Multiverse (Cosmic Purple & Neon Cyan)
-  | 'bollywood-retro';// Bollywood Retro (Neon Marigold & Marquee)
+  | 'stark'
+  | 'gotham'
+  | 'tollywood-gold'
+  | 'bengal-art'
+  | 'quantum'
+  | 'bollywood-retro';
 
 export interface CineRoom {
   id: string;
@@ -140,6 +151,78 @@ export interface CineRoom {
   createdAt: string;
 }
 
+export interface CommunityMovieRoom {
+  isOpen: boolean;
+  sourceType: 'youtube' | 'local_file';
+  activeMovie?: Movie;
+  youtubeId?: string;
+  localVideoUrl?: string;
+  localVideoFileName?: string;
+  isPlaying: boolean;
+  currentPlayheadSeconds: number;
+}
+
+export interface Community {
+  id: string;
+  name: string;
+  tagline: string;
+  description: string;
+  category: IndustryCategory | 'general';
+  bannerImage: string;
+  avatar: string;
+  memberCount: number;
+  isJoined?: boolean;
+  members: Friend[];
+  messages: ChatMessage[];
+  movieRoom: CommunityMovieRoom;
+  createdAt: string;
+}
+
+export interface CineSpacePost {
+  id: string;
+  author: {
+    id: string;
+    name: string;
+    avatar: string;
+    friendCode: string;
+    role: 'Verified Filmmaker' | 'Film Critic' | 'Pro Cinephile' | 'Director' | 'Community Member';
+    badgeColor?: string;
+  };
+  content: string;
+  taggedMovie?: Movie;
+  mediaUrl?: string;
+  reactions: {
+    fire: number;
+    heart: number;
+    crown: number;
+    popcorn: number;
+    mindblown: number;
+  };
+  userReactions: string[];
+  commentsCount: number;
+  createdAt: string;
+}
+
+export interface CineVerseCommunityRating {
+  movieId: string;
+  movieTitle: string;
+  poster: string;
+  year: number;
+  industry: IndustryCategory;
+  cineverseScore: number;
+  totalUserVotes: number;
+  positiveReactionPercentage: number;
+  topAudienceVerdict: string;
+}
+
+export interface CinePediaMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  badge?: 'VERIFIED TRUE' | 'BUSTED MYTH' | 'CANON CONFIRMED' | 'BEHIND THE SCENES' | 'BOX OFFICE FACT';
+}
+
 export interface SyncMetadata {
   lastSyncTimestamp: string;
   nextSyncTimestamp: string;
@@ -152,9 +235,9 @@ export interface SyncMetadata {
 export type RmovieTab = 
   | 'home' 
   | 'timeline'
-  | 'franchises' 
-  | 'social' 
-  | 'rooms' 
-  | 'watchlist' 
   | 'watched' 
+  | 'watchlist' 
+  | 'cinespace' 
+  | 'communities' 
+  | 'franchises' 
   | 'leaderboard';
