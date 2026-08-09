@@ -55,7 +55,14 @@ class PosterScraperService {
    * Get verified CDN or scraped poster with guaranteed fallback
    */
   getPosterFallback(title: string): string {
-    return `https://image.tmdb.org/t/p/w780/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg`;
+    const fallbacks = [
+      'https://image.tmdb.org/t/p/w780/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg',
+      'https://image.tmdb.org/t/p/w780/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg',
+      'https://image.tmdb.org/t/p/w780/nMKdUUepR0i5zn0y1T4CsSB5chy.jpg'
+    ];
+    let hash = 0;
+    for (let i = 0; i < title.length; i++) hash += title.charCodeAt(i);
+    return fallbacks[hash % fallbacks.length];
   }
 }
 

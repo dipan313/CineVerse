@@ -3,77 +3,111 @@ import { Franchise } from '../types/movie';
 export const globalFranchisesList: Franchise[] = [
   {
     id: 'marvel-mcu-saga',
-    title: 'Marvel Cinematic Universe (Infinity & Multiverse Saga)',
-    description: 'The monumental superhero franchise spanning Iron Man, Captain America, Thor, Black Panther, Spider-Man, and the epic Avengers saga.',
+    title: 'Marvel Cinematic Universe (Phases 1–6 Infinity & Multiverse)',
+    industry: 'mcu-dc',
+    universeTag: 'Marvel Studios',
+    description: 'The historic billion-dollar saga spanning Iron Man, Captain America, Spider-Man, Deadpool & Wolverine, and Avengers: Doomsday.',
     backdrop: 'https://image.tmdb.org/t/p/original/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg',
     movieIds: [
-      'mcu-avengers-endgame',
-      'mcu-avengers-infinity-war',
-      'mcu-iron-man',
+      'mcu-iron-man-1',
       'mcu-avengers-2012',
       'mcu-captain-america-winter-soldier',
+      'mcu-avengers-infinity-war',
+      'mcu-avengers-endgame',
       'mcu-spider-man-no-way-home',
-      'mcu-thor-ragnarok',
-      'mcu-black-panther',
-      'mcu-guardians-of-the-galaxy',
-      'mcu-deadpool-wolverine'
+      'mcu-deadpool-wolverine',
+      'mcu-avengers-doomsday'
     ]
   },
   {
-    id: 'godfather-saga',
-    title: 'The Godfather Trilogy',
-    description: 'Francis Ford Coppola’s epic chronicle of the Corleone crime family dynasty.',
-    backdrop: 'https://image.tmdb.org/t/p/original/tmU7whstcrGRRa3E2djGstbtZq5.jpg',
-    movieIds: ['en-godfather', 'en-godfather-2']
+    id: 'dark-knight-saga',
+    title: 'The Dark Knight Trilogy (Christopher Nolan)',
+    industry: 'mcu-dc',
+    universeTag: 'DC Universe',
+    description: 'Christopher Nolan’s genre-defining Batman trilogy featuring Christian Bale and Heath Ledger’s legendary Oscar-winning Joker.',
+    backdrop: 'https://image.tmdb.org/t/p/original/nMKdUUepR0i5zn0y1T4CsSB5chy.jpg',
+    movieIds: ['dc-the-dark-knight']
   },
   {
-    id: 'dark-knight-saga',
-    title: 'The Dark Knight Trilogy',
-    description: 'Christopher Nolan’s genre-defining Batman trilogy starring Christian Bale and Heath Ledger.',
-    backdrop: 'https://image.tmdb.org/t/p/original/nMKdUUepR0i5zn0y1T4CsSB5chy.jpg',
-    movieIds: ['en-dark-knight']
+    id: 'dc-elseworlds',
+    title: 'DC Elseworlds & The Batman Chronicles',
+    industry: 'mcu-dc',
+    universeTag: 'DC Elseworlds',
+    description: 'Dark, prestige noir detective tales exploring Gotham City beyond the main continuity.',
+    backdrop: 'https://image.tmdb.org/t/p/original/5P8SmMzSNYikXpxil6BYz9G660E.jpg',
+    movieIds: ['dc-the-batman-2022']
+  },
+  {
+    id: 'dcu-chapter-1',
+    title: 'DC Universe Chapter 1: Gods and Monsters (James Gunn)',
+    industry: 'mcu-dc',
+    universeTag: 'DC Studios',
+    description: 'The bold new dawn of DC Studios led by Superman (2025), Supergirl, and Batman: The Brave and the Bold.',
+    backdrop: 'https://image.tmdb.org/t/p/original/jsoz1HlxA92606Y11Um6uqOdYMu.jpg',
+    movieIds: ['dc-superman-2025']
   },
   {
     id: 'nolan-mind-benders',
     title: 'Christopher Nolan Cinematic Universe',
-    description: 'Mind-bending cinematic epics spanning Inception, Interstellar, Oppenheimer, and The Dark Knight.',
+    industry: 'hollywood',
+    universeTag: 'Hollywood Icons',
+    description: 'Mind-bending cinematic epics spanning Inception, Interstellar, and the Academy Award-winning Oppenheimer.',
     backdrop: 'https://image.tmdb.org/t/p/original/rLb2cw69QbHgFDW00ohY298YQkh.jpg',
-    movieIds: ['en-dark-knight', 'en-inception', 'en-interstellar', 'en-oppenheimer']
+    movieIds: ['hollywood-inception', 'hollywood-interstellar', 'hollywood-oppenheimer', 'dc-the-dark-knight']
+  },
+  {
+    id: 'godfather-saga',
+    title: 'The Godfather Trilogy (Francis Ford Coppola)',
+    industry: 'hollywood',
+    universeTag: 'Cinema History',
+    description: 'The monumental chronicle of the Corleone crime dynasty, hailed as one of the greatest artistic achievements in film history.',
+    backdrop: 'https://image.tmdb.org/t/p/original/tmU7whstcrGRRa3E2djGstbtZq5.jpg',
+    movieIds: ['hollywood-godfather']
+  },
+  {
+    id: 'rajamouli-epics',
+    title: 'S.S. Rajamouli Cinematic Epics (Tollywood)',
+    industry: 'tollywood',
+    universeTag: 'Tollywood Spectacle',
+    description: 'Groundbreaking Indian cinematic spectacles spanning the global phenomenon RRR and the record-smashing Baahubali franchise.',
+    backdrop: 'https://image.tmdb.org/t/p/original/7I6VUdPj6tQECNHdviJkUHD2389.jpg',
+    movieIds: ['tollywood-rrr', 'tollywood-baahubali-2']
   },
   {
     id: 'apu-trilogy',
     title: 'The Apu Trilogy (Satyajit Ray)',
-    description: 'Satyajit Ray’s world-renowned humanist masterpiece chronicling Apu’s journey from rural Bengal to Kolkata.',
+    industry: 'bengali',
+    universeTag: 'Bengali Heritage',
+    description: 'Satyajit Ray’s Cannes Golden Palm humanist masterworks chronicling Apu’s journey from rural Bengal to Kolkata.',
     backdrop: 'https://image.tmdb.org/t/p/original/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg',
-    movieIds: ['bn-pather-panchali', 'bn-aparajito', 'bn-apur-sansar']
+    movieIds: ['bengali-pather-panchali']
   },
   {
     id: 'feluda-byomkesh',
-    title: 'Bengali Detective & Mystery Chronicles',
-    description: 'Legendary sleuth adventures featuring Satyajit Ray’s Feluda, Topshe, Jatayu, and modern psychological thrillers.',
+    title: 'Bengali Sleuth & Psychological Mystery Chronicles',
+    industry: 'bengali',
+    universeTag: 'Bengali Thrillers',
+    description: 'Legendary detective sagas featuring Satyajit Ray’s Feluda (Sonar Kella) and Srijit Mukherji’s poetic serial killer masterpiece Baishe Srabon.',
     backdrop: 'https://image.tmdb.org/t/p/original/kXfqcdQKsToO0OUXHcrrNCHDBzO.jpg',
-    movieIds: ['bn-sonar-kella', 'bn-joy-baba-felunath', 'bn-baishe-srabon', 'bn-chotushkone', 'bn-guptodhoner-sandhane']
-  },
-  {
-    id: 'rajamouli-epics',
-    title: 'S.S. Rajamouli Cinematic Epics',
-    description: 'Groundbreaking Indian cinematic spectacles spanning RRR and the Baahubali saga.',
-    backdrop: 'https://image.tmdb.org/t/p/original/7I6VUdPj6tQECNHdviJkUHD2389.jpg',
-    movieIds: ['so-rrr']
+    movieIds: ['bengali-sonar-kella', 'bengali-baishe-srabon']
   },
   {
     id: 'ghibli-universe',
-    title: 'Studio Ghibli Hayao Miyazaki Collection',
-    description: 'Legendary animated masterworks of wonder, magic, and human heart by Hayao Miyazaki.',
+    title: 'Studio Ghibli Hayao Miyazaki Masterpieces',
+    industry: 'international',
+    universeTag: 'Japanese Animation',
+    description: 'Enchanting animated masterworks of wonder, nature, and human spirit by legendary director Hayao Miyazaki.',
     backdrop: 'https://image.tmdb.org/t/p/original/bXNvzjYE9rvEnvJZ7qZ0bK7Nf3f.jpg',
-    movieIds: ['ja-spirited-away']
+    movieIds: ['intl-spirited-away']
   },
   {
     id: 'korean-crime-thrillers',
-    title: 'Korean Cinema Masterworks (Bong Joon-ho & Park Chan-wook)',
-    description: 'Critically acclaimed gripping Korean thrillers with shocking twists and visual mastery.',
+    title: 'Korean Cinema Masterworks (Bong Joon-ho)',
+    industry: 'international',
+    universeTag: 'Korean Cinema',
+    description: 'History-making 4-time Academy Award-winning thriller Parasite and South Korea’s finest suspense masterworks.',
     backdrop: 'https://image.tmdb.org/t/p/original/hiKmpZMGZsrkA3cdBA8a0HXxTFI.jpg',
-    movieIds: ['kr-parasite', 'kr-oldboy']
+    movieIds: ['intl-parasite']
   }
 ];
 

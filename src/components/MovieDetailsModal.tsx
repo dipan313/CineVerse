@@ -1,261 +1,246 @@
 import React, { useState } from 'react';
 import { Movie } from '../types/movie';
-import { ArrowLeft, Play, ExternalLink, Check, Plus, Star } from 'lucide-react';
+import { 
+  X, 
+  Play, 
+  Bookmark, 
+  Check, 
+  Star, 
+  Tv, 
+  Share2, 
+  ExternalLink, 
+  Clock, 
+  Calendar, 
+  Shield, 
+  DollarSign, 
+  Sparkles,
+  Zap
+} from 'lucide-react';
 
 interface MovieDetailsModalProps {
-  movie: Movie | null;
+  movie: Movie;
   onClose: () => void;
-  onWatchTrailer: (youtubeId: string) => void;
   onToggleWatchlist: (m: Movie) => void;
   onToggleWatched: (m: Movie) => void;
-  onRate?: (m: Movie, rating: number) => void;
+  onRate: (m: Movie, rating: number) => void;
+  onWatchTrailer: (trailerId: string) => void;
+  onShareMovie?: (m: Movie) => void;
 }
 
 export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
   movie,
   onClose,
-  onWatchTrailer,
   onToggleWatchlist,
   onToggleWatched,
-  onRate
+  onRate,
+  onWatchTrailer,
+  onShareMovie
 }) => {
-  const [activeSubtab, setActiveSubtab] = useState<'where-to-watch' | 'details'>('where-to-watch');
-
-  if (!movie) return null;
+  const [selectedScore, setSelectedScore] = useState<number>(movie.userRating || 19);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#07080d]/95 backdrop-blur-2xl p-4 sm:p-8 animate-in fade-in duration-200">
-      <div className="max-w-5xl mx-auto space-y-8 pb-16">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200 overflow-y-auto">
+      <div className="w-full max-w-4xl rounded-3xl bg-[#0e111a] border border-white/10 shadow-2xl overflow-hidden relative my-8">
         
-        {/* Back Button */}
+        {/* Close Button */}
         <button
           onClick={onClose}
-          className="px-4 py-2 rounded-xl bg-slate-900/90 border border-white/10 text-xs font-bold text-slate-300 hover:text-white flex items-center gap-2 transition-colors active:scale-95"
+          className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-black/60 hover:bg-red-600 text-white flex items-center justify-center border border-white/15 transition-all shadow-lg"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back</span>
+          <X className="w-4 h-4" />
         </button>
 
         {/* Hero Backdrop Banner */}
-        <div className="relative rounded-3xl overflow-hidden h-[340px] sm:h-[420px] shadow-2xl border border-white/10">
+        <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-slate-900">
           <img
-            src={movie.backdrop}
+            src={movie.backdrop || movie.poster}
             alt={movie.title}
-            className="w-full h-full object-cover object-center"
+            className="w-full h-full object-cover opacity-60"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#07080d] via-[#07080d]/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#07080d] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0e111a] via-[#0e111a]/40 to-transparent" />
 
-          {/* Banner Details Overlay */}
-          <div className="absolute bottom-6 left-6 sm:left-10 flex gap-6 items-end">
-            <img
-              src={movie.poster}
-              alt={movie.title}
-              className="w-28 sm:w-36 rounded-2xl shadow-2xl border border-white/20 hidden sm:block shrink-0"
-            />
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-red-600 text-white">
-                  {movie.type === 'series' ? 'SERIES' : 'FILM'}
+          {/* Floating Action Controls on Backdrop */}
+          <div className="absolute bottom-6 left-6 right-6 flex flex-wrap items-end justify-between gap-4">
+            <div className="flex items-center gap-3">
+              {movie.trailerYoutubeId && (
+                <button
+                  onClick={() => onWatchTrailer(movie.trailerYoutubeId!)}
+                  className="px-5 py-2.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-extrabold text-xs shadow-xl shadow-red-600/40 flex items-center gap-2 transition-transform hover:scale-105"
+                >
+                  <Play className="w-4 h-4 fill-white" />
+                  <span>Watch Official Trailer</span>
+                </button>
+              )}
+
+              {onShareMovie && (
+                <button
+                  onClick={() => onShareMovie(movie)}
+                  className="px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-cyan-600 text-white font-bold text-xs border border-white/15 backdrop-blur-md flex items-center gap-2 transition-all"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>Share with Friends</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onToggleWatchlist(movie)}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  movie.isWatchlist
+                    ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
+                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/15'
+                }`}
+              >
+                <Bookmark className="w-4 h-4" />
+                <span>{movie.isWatchlist ? 'In Watchlist' : 'Add to Watchlist'}</span>
+              </button>
+
+              <button
+                onClick={() => onToggleWatched(movie)}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  movie.isWatched
+                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
+                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/15'
+                }`}
+              >
+                <Check className="w-4 h-4" />
+                <span>{movie.isWatched ? 'Watched' : 'Mark Watched'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Modal Body Info */}
+        <div className="p-6 sm:p-8 space-y-6">
+          
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+            
+            {/* Left Poster */}
+            <div className="md:col-span-4 hidden md:block">
+              <img
+                src={movie.poster}
+                alt={movie.title}
+                className="w-full rounded-2xl shadow-2xl border border-white/10 object-cover"
+              />
+            </div>
+
+            {/* Right Details */}
+            <div className="md:col-span-8 space-y-5">
+              
+              {/* Header Badges */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-red-600 text-white">
+                  {movie.industry.toUpperCase()}
                 </span>
-                {movie.isWatched && (
-                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-600 text-white flex items-center gap-1 shadow-lg">
-                    <Check className="w-3 h-3" />
-                    <span>WATCHED</span>
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300">
+                  {movie.year}
+                </span>
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300">
+                  {movie.duration || '2h 15m'}
+                </span>
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-400">
+                  ⭐ {movie.imdbRating} IMDB
+                </span>
+                {movie.phaseOrUniverse && (
+                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-300">
+                    {movie.phaseOrUniverse}
                   </span>
                 )}
               </div>
 
-              <h1 className="font-heading font-black text-3xl sm:text-5xl text-white tracking-tight leading-none drop-shadow-md">
-                {movie.title}
-              </h1>
+              {/* Title & Tagline */}
+              <div>
+                <h2 className="font-heading font-black text-2xl sm:text-3xl text-white">
+                  {movie.title}
+                </h2>
+                {movie.originalTitle && movie.originalTitle !== movie.title && (
+                  <p className="text-sm text-red-400 font-medium italic mt-0.5">
+                    {movie.originalTitle}
+                  </p>
+                )}
+              </div>
 
-              {movie.originalTitle && movie.originalTitle !== movie.title && (
-                <p className="text-sm sm:text-base text-red-300 font-semibold italic">
-                  {movie.originalTitle}
-                </p>
+              {/* Storyline */}
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                {movie.storyline}
+              </p>
+
+              {/* Director & Cast */}
+              <div className="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/5 text-xs">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Director</span>
+                  <span className="text-white font-semibold">{movie.director || 'Visionary Filmmaker'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Box Office</span>
+                  <span className="text-amber-400 font-bold">{movie.boxOffice || '$500M+'}</span>
+                </div>
+                {movie.stars && (
+                  <div className="col-span-2">
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Starring Cast</span>
+                    <span className="text-slate-300">{movie.stars.join(', ')}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 1-20 Rating Scale Selector */}
+              <div className="space-y-2 p-4 rounded-2xl bg-gradient-to-r from-red-600/10 to-amber-500/10 border border-white/10">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                    <span>Rate Film (1–20 Epic Scale):</span>
+                  </span>
+                  <span className="font-mono font-black text-base text-amber-400">
+                    {selectedScore}/20
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="1"
+                    max="20"
+                    value={selectedScore}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setSelectedScore(val);
+                      onRate(movie, val);
+                    }}
+                    className="w-full accent-red-500 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* Streaming Providers */}
+              {movie.streamingProviders && movie.streamingProviders.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Available to Stream / Watch:
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {movie.streamingProviders.map((prov, i) => (
+                      <a
+                        key={i}
+                        href={prov.url || '#'}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-white flex items-center gap-2 transition-colors"
+                      >
+                        <Tv className="w-3.5 h-3.5 text-red-400" />
+                        <span>{prov.name} ({prov.type})</span>
+                        <ExternalLink className="w-3 h-3 text-slate-500" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300 pt-1 font-semibold">
-                <span className="font-mono">{movie.year}</span>
-                <span>•</span>
-                <span className="px-2 py-0.5 rounded bg-black/60 border border-white/10 text-[10px]">
-                  {movie.pgRating || 'PG-13'}
-                </span>
-                <span>•</span>
-                <span>{movie.duration}</span>
-                <span>•</span>
-                <div className="flex items-center gap-1 text-amber-400 font-bold">
-                  <Star className="w-3.5 h-3.5 fill-current" />
-                  <span>{movie.userRating || 20}/20</span>
-                </div>
-              </div>
-
-              {/* Action Buttons Row */}
-              <div className="flex flex-wrap items-center gap-2 pt-2">
-                
-                {/* Mark Watched Toggle Button */}
-                <button
-                  onClick={() => onToggleWatched(movie)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 ${
-                    movie.isWatched
-                      ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/40 ring-2 ring-emerald-400/50'
-                      : 'bg-slate-900 border border-white/10 text-slate-300 hover:text-emerald-400'
-                  }`}
-                >
-                  <Check className="w-3.5 h-3.5 stroke-[3]" />
-                  <span>{movie.isWatched ? 'Watched' : 'Mark as Watched'}</span>
-                </button>
-
-                {/* Watchlist Toggle Button */}
-                <button
-                  onClick={() => onToggleWatchlist(movie)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 ${
-                    movie.isWatchlist
-                      ? 'bg-red-600 text-white shadow-md shadow-red-600/30'
-                      : 'bg-slate-900 border border-white/10 text-slate-300 hover:text-white'
-                  }`}
-                >
-                  {movie.isWatchlist ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-                  <span>{movie.isWatchlist ? 'In Watchlist' : 'Add to Watchlist'}</span>
-                </button>
-              </div>
             </div>
+
           </div>
+
         </div>
-
-        {/* Action Bar (Watch Trailer / View on IMDb) */}
-        <div className="flex flex-wrap items-center gap-3">
-          {movie.trailerYoutubeId && (
-            <button
-              onClick={() => onWatchTrailer(movie.trailerYoutubeId!)}
-              className="px-6 py-3 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-extrabold text-xs shadow-xl shadow-red-600/30 flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
-            >
-              <Play className="w-4 h-4 fill-current" />
-              <span>Watch Trailer</span>
-            </button>
-          )}
-
-          <a
-            href={`https://www.imdb.com/title/${movie.imdbId}/`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-5 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-white font-bold text-xs flex items-center gap-2 transition-all active:scale-95"
-          >
-            <span>View on IMDb</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-
-          {/* Interactive 1-20 Rating Widget */}
-          {onRate && (
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-900 border border-white/10 text-xs">
-              <span className="font-bold text-slate-400">Your Score:</span>
-              <select
-                value={movie.userRating || 20}
-                onChange={(e) => onRate(movie, parseInt(e.target.value))}
-                className="bg-transparent text-amber-400 font-extrabold focus:outline-none cursor-pointer"
-              >
-                {Array.from({ length: 20 }, (_, i) => 20 - i).map(num => (
-                  <option key={num} value={num} className="bg-slate-900 text-white">
-                    {num}/20 ★
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
-
-        {/* Subtabs Bar */}
-        <div className="border-b border-white/10 flex gap-6 text-sm font-bold">
-          <button
-            onClick={() => setActiveSubtab('where-to-watch')}
-            className={`pb-3 transition-colors border-b-2 ${
-              activeSubtab === 'where-to-watch'
-                ? 'border-red-600 text-white'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Where to Watch
-          </button>
-          <button
-            onClick={() => setActiveSubtab('details')}
-            className={`pb-3 transition-colors border-b-2 ${
-              activeSubtab === 'details'
-                ? 'border-red-600 text-white'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Details
-          </button>
-        </div>
-
-        {/* Subtab 1: Where to Watch */}
-        {activeSubtab === 'where-to-watch' && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {(movie.streamingProviders || []).map((provider, idx) => (
-              <a
-                key={idx}
-                href={provider.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-5 rounded-2xl bg-[#10121a] border border-white/5 hover:border-red-500/40 flex items-center justify-between transition-all group"
-              >
-                <div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-600/20 text-red-400 border border-red-500/30 uppercase">
-                    {provider.type}
-                  </span>
-                  <div className="font-heading font-extrabold text-base text-white mt-2 group-hover:text-red-400 transition-colors">
-                    {provider.name}
-                  </div>
-                  {provider.price && (
-                    <div className="text-xs text-slate-400 font-mono mt-0.5">{provider.price}</div>
-                  )}
-                </div>
-                <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-white transition-colors" />
-              </a>
-            ))}
-          </div>
-        )}
-
-        {/* Subtab 2: Details */}
-        {activeSubtab === 'details' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#10121a] p-6 rounded-3xl border border-white/5">
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase">Director</h4>
-                <p className="text-sm font-semibold text-white mt-0.5">{movie.director || 'Acclaimed Director'}</p>
-              </div>
-
-              <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase">Starring</h4>
-                <p className="text-sm text-slate-300 mt-0.5">{(movie.stars || []).join(', ')}</p>
-              </div>
-
-              <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase">Box Office</h4>
-                <p className="text-sm font-semibold text-emerald-400 mt-0.5">{movie.boxOffice || 'N/A'}</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase">Genres</h4>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {(movie.genres || []).map((g, idx) => (
-                    <span key={idx} className="px-2.5 py-1 rounded-lg bg-slate-900 border border-white/10 text-xs text-slate-300 font-medium">
-                      {g}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase">Storyline</h4>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mt-1">{movie.storyline}</p>
-              </div>
-            </div>
-          </div>
-        )}
 
       </div>
     </div>

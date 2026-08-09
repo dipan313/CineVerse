@@ -1,6 +1,26 @@
-import React from 'react';
-import { RmovieTab } from '../types/movie';
-import { Search, Sun, Moon, Zap, Film } from 'lucide-react';
+import React, { useState } from 'react';
+import { RmovieTab, UserProfile, SyncMetadata } from '../types/movie';
+import { 
+  Film, 
+  Search, 
+  Bookmark, 
+  CheckCircle, 
+  Layers, 
+  Trophy, 
+  Moon, 
+  Sun, 
+  Users, 
+  Tv, 
+  Zap, 
+  RefreshCw, 
+  LogOut, 
+  Copy, 
+  Check, 
+  Sparkles,
+  Plus
+} from 'lucide-react';
+import { weeklySyncEngine } from '../services/weeklySyncEngine';
+import { cinemaDb } from '../db/cinemaDatabase';
 
 interface NavbarProps {
   activeTab: RmovieTab;
@@ -8,11 +28,13 @@ interface NavbarProps {
   watchlistCount: number;
   watchedCount: number;
   searchQuery: string;
-  setSearchQuery: (q: string) => void;
+  setSearchQuery: (query: string) => void;
   isDarkMode: boolean;
-  setIsDarkMode: (val: boolean) => void;
-  onOpenAuth: () => void;
+  setIsDarkMode: (dark: boolean) => void;
+  currentUser: UserProfile;
+  onSignOut: () => void;
   onOpenAutoImport: () => void;
+  onSyncStarted: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -24,138 +46,202 @@ export const Navbar: React.FC<NavbarProps> = ({
   setSearchQuery,
   isDarkMode,
   setIsDarkMode,
-  onOpenAuth,
-  onOpenAutoImport
+  currentUser,
+  onSignOut,
+  onOpenAutoImport,
+  onSyncStarted
 }) => {
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const syncMeta = cinemaDb.getFriends(); // sync status is maintained in cinemaDb
+
+  const handleManualSync = async () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    onSyncStarted();
+
+    try {
+      const allMovies = cinemaDb.getMovies();
+      const res = await weeklySyncEngine.performSync(allMovies);
+      cinemaDb.setMovies(res.updatedMovies);
+    } catch (e) {
+      console.error("Sync error", e);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(currentUser.friendCode);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/5 transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 space-y-3">
-        
-        {/* Top Navbar Row */}
-        <div className="flex items-center justify-between">
+    <nav className="fixed top-0 left-0 right-0 z-40 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/10 transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20 gap-4">
           
-          {/* Glowing Cineverse Logo */}
+          {/* Logo & Brand */}
           <div 
             onClick={() => setActiveTab('home')}
-            className="flex items-center gap-2 cursor-pointer group"
+            className="flex items-center gap-3 cursor-pointer group shrink-0"
           >
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-red-600 via-rose-500 to-amber-500 flex items-center justify-center shadow-lg shadow-red-600/30 group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-red-600 via-red-500 to-amber-500 flex items-center justify-center shadow-lg shadow-red-600/30 group-hover:scale-105 transition-transform">
               <Film className="w-5 h-5 text-white" />
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-heading font-black text-2xl tracking-tighter text-white">
+            <div>
+              <div className="font-heading font-black text-xl tracking-tight text-white flex items-center gap-1">
                 CINE<span className="text-red-500">VERSE</span>
-              </span>
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30 uppercase tracking-widest hidden sm:inline">
-                Automated
-              </span>
+              </div>
+              <p className="text-[9px] font-mono tracking-widest text-slate-400">SUPERHERO & GLOBAL</p>
             </div>
           </div>
 
-          {/* Central Pill Navigation Tabs */}
-          <nav className="flex items-center gap-1.5 p-1 rounded-full bg-slate-900/80 border border-white/10 shadow-inner">
+          {/* Search Bar */}
+          <div className="hidden md:flex flex-1 max-w-xs relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search Hollywood, Marvel, DC, Bollywood, Bengali..."
+              className="w-full bg-[#141724] border border-white/10 rounded-2xl pl-10 pr-4 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500 transition-colors"
+            />
+          </div>
+
+          {/* Navigation Links */}
+          <div className="hidden lg:flex items-center gap-1">
+            
             <button
               onClick={() => setActiveTab('home')}
-              className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                 activeTab === 'home'
-                  ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg shadow-red-600/30'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              Home
+              Catalog
             </button>
 
             <button
-              onClick={() => setActiveTab('watchlist')}
-              className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                activeTab === 'watchlist'
-                  ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg shadow-red-600/30'
-                  : 'text-slate-400 hover:text-slate-200'
+              onClick={() => setActiveTab('timeline')}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activeTab === 'timeline'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              Watchlist ({watchlistCount})
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <span>MCU & DC</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('watched')}
-              className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                activeTab === 'watched'
-                  ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg shadow-red-600/30'
-                  : 'text-slate-400 hover:text-slate-200'
+              onClick={() => setActiveTab('social')}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activeTab === 'social'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              Watched ({watchedCount})
+              <Users className="w-3.5 h-3.5 text-red-400" />
+              <span>Friends & Chat</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('rooms')}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activeTab === 'rooms'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Tv className="w-3.5 h-3.5 text-cyan-400" />
+              <span>CineRooms</span>
             </button>
 
             <button
               onClick={() => setActiveTab('franchises')}
-              className={`hidden sm:block px-4 py-2 rounded-full text-xs font-bold transition-all ${
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                 activeTab === 'franchises'
-                  ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg shadow-red-600/30'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              Franchises
+              <Layers className="w-3.5 h-3.5" />
+              <span>Sagas</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('leaderboard')}
-              className={`hidden sm:block px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                activeTab === 'leaderboard'
-                  ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg shadow-red-600/30'
-                  : 'text-slate-400 hover:text-slate-200'
+              onClick={() => setActiveTab('watchlist')}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 relative ${
+                activeTab === 'watchlist'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              Leaderboard
+              <Bookmark className="w-3.5 h-3.5" />
+              <span>Watchlist</span>
+              {watchlistCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-amber-500 text-black font-black text-[9px] flex items-center justify-center">
+                  {watchlistCount}
+                </span>
+              )}
             </button>
-          </nav>
 
-          {/* Right Action Controls */}
-          <div className="flex items-center gap-3">
+          </div>
+
+          {/* Right Action Tools: 7-Day Sync, User Profile & Actions */}
+          <div className="flex items-center gap-2.5">
             
-            {/* Auto Ingest / Auto Fetch Action */}
+            {/* 7-Day Automated Sync Trigger */}
             <button
-              onClick={onOpenAutoImport}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-gradient-to-r from-red-950 to-slate-900 border border-red-500/40 text-xs font-bold text-amber-300 hover:text-white hover:border-red-500 transition-all shadow-md shadow-red-950/40"
-              title="Autonomous Cinema Ingestion"
+              onClick={handleManualSync}
+              disabled={isSyncing}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all text-xs flex items-center gap-1.5"
+              title="7-Day Automated Web Sync (Wikipedia & TMDB)"
             >
-              <Zap className="w-3.5 h-3.5 text-amber-400 fill-current" />
-              <span>⚡ Auto-Sync</span>
+              <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${isSyncing ? 'animate-spin' : ''}`} />
+              <span className="hidden xl:inline text-[11px] font-bold">
+                {isSyncing ? 'Syncing...' : '7-Day Sync'}
+              </span>
             </button>
 
-            {/* Theme Toggle */}
+            {/* User Profile Pill & Friend Code */}
+            <div className="flex items-center gap-2 p-1.5 pl-2 rounded-2xl bg-[#141724] border border-white/10">
+              <img
+                src={currentUser.avatarUrl}
+                alt={currentUser.displayName}
+                className="w-7 h-7 rounded-xl bg-slate-800"
+              />
+              <div className="hidden sm:block text-left pr-1">
+                <div className="font-bold text-[11px] text-white truncate max-w-[90px]">
+                  {currentUser.displayName}
+                </div>
+                <button
+                  onClick={handleCopyCode}
+                  className="font-mono text-[9px] text-amber-400 flex items-center gap-1 hover:underline"
+                  title="Click to copy friend code"
+                >
+                  <span>{currentUser.friendCode}</span>
+                  {copiedCode ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5 opacity-60" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Sign Out Button */}
             <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-2.5 rounded-full bg-slate-900 border border-white/10 text-slate-300 hover:text-white transition-colors"
-              title="Toggle Theme"
+              onClick={onSignOut}
+              className="p-2 rounded-xl bg-white/5 hover:bg-red-600/20 text-slate-400 hover:text-red-400 border border-white/10 transition-colors"
+              title="Sign Out"
             >
-              {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-cyan-400" />}
+              <LogOut className="w-4 h-4" />
             </button>
 
-            {/* Sign Up / User Portal */}
-            <button
-              onClick={onOpenAuth}
-              className="px-4 py-2 rounded-full bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-md shadow-red-600/30 transition-all hover:scale-105"
-            >
-              Sign up
-            </button>
           </div>
 
         </div>
-
-        {/* Global Instant Search Bar */}
-        <div className="relative w-full">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search worldwide cinema by title, native name, or IMDb ID (e.g. Parasite, RRR, tt0111161, 3 Idiots)..."
-            className="w-full bg-[#12121c]/90 border border-white/10 focus:border-red-500/80 rounded-2xl pl-11 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors shadow-inner"
-          />
-        </div>
-
       </div>
-    </header>
+    </nav>
   );
 };

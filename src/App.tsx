@@ -1,18 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Movie, RmovieTab } from './types/movie';
+import { Movie, RmovieTab, UserProfile } from './types/movie';
 import { cinemaDb, DatabaseState } from './db/cinemaDatabase';
+import { authService } from './db/supabaseClient';
 import { Navbar } from './components/Navbar';
 import { HomeView } from './components/HomeView';
+import { UniverseTimelineView } from './components/UniverseTimelineView';
+import { FranchisesView } from './components/FranchisesView';
+import { FriendsView } from './components/FriendsView';
+import { CineRoomView } from './components/CineRoomView';
 import { WatchlistView } from './components/WatchlistView';
 import { WatchedView } from './components/WatchedView';
-import { FranchisesView } from './components/FranchisesView';
 import { LeaderboardView } from './components/LeaderboardView';
 import { MovieDetailsModal } from './components/MovieDetailsModal';
 import { TrailerModal } from './components/TrailerModal';
-import { AuthModal } from './components/AuthModal';
+import { ShareMovieModal } from './components/ShareMovieModal';
 import { AddMovieAutoImportModal } from './components/AddMovieAutoImportModal';
+import { LandingPage } from './components/LandingPage';
+import { Check, RefreshCw } from 'lucide-react';
 
 export const App: React.FC = () => {
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => authService.getCurrentUser());
   const [activeTab, setActiveTab] = useState<RmovieTab>('home');
   const [dbState, setDbState] = useState<DatabaseState>(() => ({
     movies: cinemaDb.getMovies(),
@@ -20,7 +27,13 @@ export const App: React.FC = () => {
     watchHistory: cinemaDb.getWatchHistory(),
     lastWatchedMovieId: cinemaDb.getLastWatchedMovie()?.id || null,
     userPreferences: { theme: 'dark', region: 'US', preferredLanguages: ['All'] },
-    version: 20
+    friends: cinemaDb.getFriends(),
+    friendRequests: [],
+    sharedRecommendations: [],
+    rooms: cinemaDb.getRooms(),
+    directMessages: {},
+    syncMetadata: cinemaDb.getFriends() as any,
+    version: 21
   }));
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,14 +41,22 @@ export const App: React.FC = () => {
 
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [activeTrailerId, setActiveTrailerId] = useState<string | null>(null);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [shareMovieTarget, setShareMovieTarget] = useState<Movie | null>(null);
   const [isAutoImportOpen, setIsAutoImportOpen] = useState(false);
+  const [syncToastMessage, setSyncToastMessage] = useState<string | null>(null);
 
-  // Subscribe to structured database updates
+  // Subscribe to Auth changes
   useEffect(() => {
-    const unsubscribe = cinemaDb.subscribe((newState) => {
+    const unsubscribeAuth = authService.subscribe((user) => {
+      setCurrentUser(user);
+    });
+    return unsubscribeAuth;
+  }, []);
+
+  // Subscribe to Database changes
+  useEffect(() => {
+    const unsubscribeDb = cinemaDb.subscribe((newState) => {
       setDbState({ ...newState });
-      // Keep selected movie in modal in sync with database updates
       if (selectedMovie) {
         const updated = newState.movies.find(m => m.id === selectedMovie.id);
         if (updated) {
@@ -43,8 +64,13 @@ export const App: React.FC = () => {
         }
       }
     });
-    return unsubscribe;
+    return unsubscribeDb;
   }, [selectedMovie]);
+
+  // If user is not logged in, render the high-impact Landing Page
+  if (!currentUser) {
+    return <LandingPage onAuthenticated={() => setCurrentUser(authService.getCurrentUser())} />;
+  }
 
   const movies = dbState.movies;
   const franchises = dbState.franchises;
@@ -54,7 +80,6 @@ export const App: React.FC = () => {
   const watchlistCount = movies.filter(m => m.isWatchlist).length;
   const watchedCount = movies.filter(m => m.isWatched).length;
 
-  // Toggle watchlist
   const handleToggleWatchlist = (movie: Movie) => {
     const updated = cinemaDb.toggleWatchlist(movie.id);
     if (updated && selectedMovie && selectedMovie.id === movie.id) {
@@ -62,7 +87,6 @@ export const App: React.FC = () => {
     }
   };
 
-  // Toggle watched
   const handleToggleWatched = (movie: Movie) => {
     const updated = cinemaDb.toggleWatched(movie.id);
     if (updated && selectedMovie && selectedMovie.id === movie.id) {
@@ -70,22 +94,24 @@ export const App: React.FC = () => {
     }
   };
 
-  // Custom 1-20 rating
   const handleRate = (movie: Movie, rating: number) => {
     cinemaDb.rateMovie(movie.id, rating);
   };
 
-  // Delete from list
   const handleDelete = (movie: Movie) => {
     cinemaDb.toggleWatchlist(movie.id);
   };
 
-  // Add newly uploaded movie from IMDb or Scraper
   const handleAddMovie = (newMovie: Movie) => {
     cinemaDb.addMovie(newMovie);
   };
 
-  // Filtered by global search query across English, Marvel, Bengali, native titles, director, language
+  const handleSyncNotification = () => {
+    setSyncToastMessage("7-Day Web Sync Complete: Movie ratings, posters & box office updated.");
+    setTimeout(() => setSyncToastMessage(null), 4000);
+  };
+
+  // Search Filter
   const displayedMovies = searchQuery.trim()
     ? movies.filter(
         m =>
@@ -103,7 +129,7 @@ export const App: React.FC = () => {
       isDarkMode ? 'bg-[#0a0a0f] text-slate-100' : 'bg-slate-100 text-slate-900'
     }`}>
       
-      {/* Top Navbar */}
+      {/* Top Fixed Navbar */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -113,12 +139,25 @@ export const App: React.FC = () => {
         setSearchQuery={setSearchQuery}
         isDarkMode={isDarkMode}
         setIsDarkMode={setIsDarkMode}
-        onOpenAuth={() => setIsAuthOpen(true)}
+        currentUser={currentUser}
+        onSignOut={() => authService.signOut()}
         onOpenAutoImport={() => setIsAutoImportOpen(true)}
+        onSyncStarted={handleSyncNotification}
       />
 
+      {/* Sync Toast Notification */}
+      {syncToastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-emerald-950/90 border border-emerald-500/40 text-emerald-300 shadow-2xl backdrop-blur-md flex items-center gap-3 animate-in slide-in-from-bottom-5">
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <Check className="w-4 h-4" />
+          </div>
+          <p className="text-xs font-semibold">{syncToastMessage}</p>
+        </div>
+      )}
+
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28">
+        
         {activeTab === 'home' && (
           <HomeView
             movies={displayedMovies}
@@ -129,6 +168,45 @@ export const App: React.FC = () => {
             onToggleWatchlist={handleToggleWatchlist}
             onToggleWatched={handleToggleWatched}
             onRate={handleRate}
+            onShareMovie={(m) => setShareMovieTarget(m)}
+          />
+        )}
+
+        {activeTab === 'timeline' && (
+          <UniverseTimelineView
+            movies={movies}
+            onSelectMovie={(m) => setSelectedMovie(m)}
+            onToggleWatchlist={handleToggleWatchlist}
+            onToggleWatched={handleToggleWatched}
+            onRate={handleRate}
+            onShareMovie={(m) => setShareMovieTarget(m)}
+          />
+        )}
+
+        {activeTab === 'social' && (
+          <FriendsView
+            currentUser={currentUser}
+            onSelectMovie={(m) => setSelectedMovie(m)}
+            onToggleWatchlist={handleToggleWatchlist}
+            onToggleWatched={handleToggleWatched}
+          />
+        )}
+
+        {activeTab === 'rooms' && (
+          <CineRoomView
+            currentUser={currentUser}
+            allMovies={movies}
+            onSelectMovie={(m) => setSelectedMovie(m)}
+          />
+        )}
+
+        {activeTab === 'franchises' && (
+          <FranchisesView
+            franchises={franchises}
+            movies={movies}
+            onSelectMovie={(m) => setSelectedMovie(m)}
+            onToggleWatchlist={handleToggleWatchlist}
+            onToggleWatched={handleToggleWatched}
           />
         )}
 
@@ -153,22 +231,13 @@ export const App: React.FC = () => {
           />
         )}
 
-        {activeTab === 'franchises' && (
-          <FranchisesView
-            franchises={franchises}
-            movies={movies}
-            onSelectMovie={(m) => setSelectedMovie(m)}
-            onToggleWatchlist={handleToggleWatchlist}
-            onToggleWatched={handleToggleWatched}
-          />
-        )}
-
         {activeTab === 'leaderboard' && (
           <LeaderboardView
             movies={movies}
             onSelectMovie={(m) => setSelectedMovie(m)}
           />
         )}
+
       </main>
 
       {/* Movie Details Modal */}
@@ -180,6 +249,7 @@ export const App: React.FC = () => {
           onToggleWatched={handleToggleWatched}
           onRate={handleRate}
           onWatchTrailer={(trailerId) => setActiveTrailerId(trailerId)}
+          onShareMovie={(m) => setShareMovieTarget(m)}
         />
       )}
 
@@ -191,16 +261,18 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Authentication Modal */}
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        onGuestAccess={() => {
-          setIsAuthOpen(false);
-        }}
-      />
+      {/* Share Movie with Friends Modal */}
+      {shareMovieTarget && (
+        <ShareMovieModal
+          movie={shareMovieTarget}
+          isOpen={!!shareMovieTarget}
+          onClose={() => setShareMovieTarget(null)}
+          senderName={currentUser.displayName}
+          senderAvatar={currentUser.avatarUrl}
+        />
+      )}
 
-      {/* Auto-Import & Scraper Modal */}
+      {/* Auto-Import / Scraper Modal */}
       <AddMovieAutoImportModal
         isOpen={isAutoImportOpen}
         onClose={() => setIsAutoImportOpen(false)}

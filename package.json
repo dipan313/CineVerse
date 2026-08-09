@@ -1,5 +1,5 @@
 {
-  "name": "careerforge-ai",
+  "name": "cineverse",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.2",
     "canvas-confetti": "^1.9.4",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.1",
