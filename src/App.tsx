@@ -155,6 +155,7 @@ export const App: React.FC = () => {
         onOpenAutoImport={() => setIsAutoImportOpen(true)}
         onOpenCinePedia={() => setIsCinePediaOpen(true)}
         onSyncStarted={handleSyncNotification}
+        onSelectMovie={(m) => setSelectedMovie(m)}
       />
 
       {/* Sync Toast Notification */}
@@ -168,7 +169,9 @@ export const App: React.FC = () => {
       )}
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28">
+      <main className={`max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 ${
+        activeTab === 'communities' ? 'pt-20 sm:pt-22' : 'pt-24 sm:pt-28'
+      }`}>
         
         {activeTab === 'home' && (
           <HomeView
