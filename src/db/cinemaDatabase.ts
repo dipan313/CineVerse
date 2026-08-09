@@ -46,7 +46,7 @@ export interface DatabaseState {
 
 const DB_STORAGE_KEY = 'cineverse_db_v22';
 
-// Seed Initial Preset Communities
+// Seed Initial Preset Communities (All unjoined by default for new users)
 const initialPresetCommunities: Community[] = [
   {
     id: 'comm_mcu_multiverse',
@@ -55,9 +55,9 @@ const initialPresetCommunities: Community[] = [
     description: 'A global community of Marvel fans, comic book historians, and filmmakers dissecting Phase 1 through Avengers: Doomsday & Secret Wars.',
     category: 'mcu-dc',
     bannerImage: 'https://image.tmdb.org/t/p/original/bOGkgRGdhrBYJSLpXaxhXVstNsV.jpg',
-    avatar: 'https://image.tmdb.org/t/p/w780/78lPtwv72eTNqFW9COBYI0dWDJa.jpg',
+    avatar: 'https://image.tmdb.org/t/p/w500/78lPtwv72eTNqFW9COBYI0dWDJa.jpg',
     memberCount: 14820,
-    isJoined: true,
+    isJoined: false,
     members: [],
     messages: [
       {
@@ -65,14 +65,13 @@ const initialPresetCommunities: Community[] = [
         senderId: 'usr_stark',
         senderName: 'Tony Stark',
         senderAvatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=TonyStark',
-        content: 'Welcome to the Multiverse Hub! We are live-streaming the Avengers: Doomsday theories tonight in our community movie room.',
+        content: 'Welcome to the Multiverse Hub! Feel free to pick a movie or upload local video in our community movie room.',
         timestamp: '10:30 PM'
       }
     ],
     movieRoom: {
       isOpen: false,
       sourceType: 'youtube',
-      youtubeId: 'TcMBFSGVi1c',
       isPlaying: false,
       currentPlayheadSeconds: 0
     },
@@ -85,9 +84,9 @@ const initialPresetCommunities: Community[] = [
     description: 'Dedicated to Batman, Superman (2025), Christopher Nolan’s Dark Knight Trilogy, and the artistic direction of DC Studios.',
     category: 'mcu-dc',
     bannerImage: 'https://image.tmdb.org/t/p/original/nMKdUUepR0i5zn0y1T4CsSB5chy.jpg',
-    avatar: 'https://image.tmdb.org/t/p/w780/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
+    avatar: 'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
     memberCount: 11340,
-    isJoined: true,
+    isJoined: false,
     members: [],
     messages: [
       {
@@ -102,7 +101,6 @@ const initialPresetCommunities: Community[] = [
     movieRoom: {
       isOpen: false,
       sourceType: 'youtube',
-      youtubeId: 'EXeTwQWrcwY',
       isPlaying: false,
       currentPlayheadSeconds: 0
     },
@@ -115,7 +113,7 @@ const initialPresetCommunities: Community[] = [
     description: 'Celebrating high-energy Indian cinematic masterworks, visual effects innovations, and cultural storytelling.',
     category: 'tollywood',
     bannerImage: 'https://image.tmdb.org/t/p/original/7I6VUdPj6tQECNHdviJkUHD2389.jpg',
-    avatar: 'https://image.tmdb.org/t/p/w780/kdP1g759ue0m9zR42Mh2XJgD3q0.jpg',
+    avatar: 'https://image.tmdb.org/t/p/w500/7I6VUdPj6tQECNHdviJkUHD2389.jpg',
     memberCount: 9240,
     isJoined: false,
     members: [],
@@ -132,7 +130,6 @@ const initialPresetCommunities: Community[] = [
     movieRoom: {
       isOpen: false,
       sourceType: 'youtube',
-      youtubeId: 'GY4BgdUSpbE',
       isPlaying: false,
       currentPlayheadSeconds: 0
     },
@@ -145,9 +142,9 @@ const initialPresetCommunities: Community[] = [
     description: 'Deep discussions on Satyajit Ray, Mrinal Sen, Ritwik Ghatak, and the poetic mystery thrillers of Bengali cinema.',
     category: 'bengali',
     bannerImage: 'https://image.tmdb.org/t/p/original/kXfqcdQKsToO0OUXHcrrNCHDBzO.jpg',
-    avatar: 'https://image.tmdb.org/t/p/w780/6xS515x1892019481741jklM4.jpg',
+    avatar: 'https://image.tmdb.org/t/p/w500/kXfqcdQKsToO0OUXHcrrNCHDBzO.jpg',
     memberCount: 6850,
-    isJoined: true,
+    isJoined: false,
     members: [],
     messages: [
       {
@@ -162,7 +159,6 @@ const initialPresetCommunities: Community[] = [
     movieRoom: {
       isOpen: false,
       sourceType: 'youtube',
-      youtubeId: 'c_MvK1g8A5M',
       isPlaying: false,
       currentPlayheadSeconds: 0
     },
@@ -175,7 +171,7 @@ const initialPresetCommunities: Community[] = [
     description: 'A space for screenwriters, directors, and film students analyzing non-linear storytelling, practical effects, and sound design.',
     category: 'hollywood',
     bannerImage: 'https://image.tmdb.org/t/p/original/rLb2cw69QbHgFDW00ohY298YQkh.jpg',
-    avatar: 'https://image.tmdb.org/t/p/w780/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
+    avatar: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
     memberCount: 15400,
     isJoined: false,
     members: [],
@@ -183,7 +179,6 @@ const initialPresetCommunities: Community[] = [
     movieRoom: {
       isOpen: false,
       sourceType: 'youtube',
-      youtubeId: 'zSWdZVtXT7E',
       isPlaying: false,
       currentPlayheadSeconds: 0
     },
@@ -338,9 +333,15 @@ class CinemaDatabase {
       userRating: undefined
     }));
 
+    const cleanCommunities = this.state.communities.map(c => ({
+      ...c,
+      isJoined: false
+    }));
+
     this.persist({
       ...this.state,
       movies: cleanMovies,
+      communities: cleanCommunities,
       watchHistory: [],
       lastWatchedMovieId: null,
       sharedRecommendations: []

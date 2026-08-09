@@ -17,9 +17,11 @@ import { ShareMovieModal } from './components/ShareMovieModal';
 import { CinePediaModal } from './components/CinePediaModal';
 import { AddMovieAutoImportModal } from './components/AddMovieAutoImportModal';
 import { LandingPage } from './components/LandingPage';
+import { CinematicLoader } from './components/CinematicLoader';
 import { Check } from 'lucide-react';
 
 export const App: React.FC = () => {
+  const [isCinematicLoading, setIsCinematicLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => authService.getCurrentUser());
   const [activeTab, setActiveTab] = useState<RmovieTab>('home');
   const [dbState, setDbState] = useState<DatabaseState>(() => ({
@@ -70,6 +72,11 @@ export const App: React.FC = () => {
     });
     return unsubscribeDb;
   }, [selectedMovie]);
+
+  // Initial Cinematic Studio Preloader
+  if (isCinematicLoading) {
+    return <CinematicLoader onComplete={() => setIsCinematicLoading(false)} />;
+  }
 
   // If user is not logged in, render the high-impact Landing Page
   if (!currentUser) {

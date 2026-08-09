@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Community, ChatMessage, VoiceMessage, UserProfile, Movie, IndustryCategory } from '../types/movie';
 import { cinemaDb } from '../db/cinemaDatabase';
 import { 
@@ -7,7 +7,6 @@ import {
   Mic, 
   Volume2, 
   Play, 
-  Pause, 
   Upload, 
   Film, 
   Send, 
@@ -16,14 +15,14 @@ import {
   Radio, 
   Plus, 
   LogOut, 
-  UserPlus, 
   Compass, 
   Hash, 
   Search, 
   Check, 
   X,
   Flame,
-  Globe
+  Globe,
+  SlidersHorizontal
 } from 'lucide-react';
 
 interface CommunitiesViewProps {
@@ -40,9 +39,23 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
   onSelectMovie
 }) => {
   const communities = cinemaDb.getCommunities();
-  const [selectedCommunityId, setSelectedCommunityId] = useState<string>(communities[0]?.id || '');
+  const joinedCommunities = useMemo(() => communities.filter(c => c.isJoined), [communities]);
+
+  // Mode: 'explore' (search & discover communities) or 'community' (view active community channels)
+  const [viewMode, setViewMode] = useState<'explore' | 'community'>(() => 
+    joinedCommunities.length > 0 ? 'community' : 'explore'
+  );
+  
+  const [selectedCommunityId, setSelectedCommunityId] = useState<string>(() => 
+    joinedCommunities[0]?.id || communities[0]?.id || ''
+  );
+  
   const [activeChannel, setActiveChannel] = useState<ChannelTab>('chat');
   const [chatInput, setChatInput] = useState('');
+
+  // Community Search & Filter in Explore Mode
+  const [searchFilter, setSearchFilter] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
 
   // Create Community Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -69,6 +82,13 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
   const [selectedCatalogMovieId, setSelectedCatalogMovieId] = useState<string>('');
 
   const activeCommunity = communities.find(c => c.id === selectedCommunityId) || communities[0];
+
+  // Auto-switch selected community if current one isn't set
+  useEffect(() => {
+    if (!selectedCommunityId && communities.length > 0) {
+      setSelectedCommunityId(communities[0].id);
+    }
+  }, [communities, selectedCommunityId]);
 
   // Voice recording timer
   useEffect(() => {
@@ -214,6 +234,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
     cinemaDb.createCommunity(newCommunity);
     setSelectedCommunityId(newCommunity.id);
+    setViewMode('community');
     setIsCreateModalOpen(false);
     setNewCommName('');
     setNewCommTagline('');
@@ -262,6 +283,18 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
     setYoutubeInputUrl('');
   };
 
+  // Filtered communities in Explore Mode
+  const filteredCommunities = useMemo(() => {
+    return communities.filter(c => {
+      if (selectedCategoryFilter !== 'all' && c.category !== selectedCategoryFilter) return false;
+      if (searchFilter.trim()) {
+        const q = searchFilter.toLowerCase();
+        return c.name.toLowerCase().includes(q) || c.tagline.toLowerCase().includes(q) || c.description.toLowerCase().includes(q);
+      }
+      return true;
+    });
+  }, [communities, searchFilter, selectedCategoryFilter]);
+
   return (
     <div className="pb-16 space-y-6">
       
@@ -271,27 +304,53 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
         {/* Column 1: Server Icons Sidebar (narrow) */}
         <div className="w-full md:w-20 bg-[#06080f] border-r border-white/5 p-3 flex md:flex-col items-center justify-between md:justify-start gap-3 overflow-x-auto md:overflow-y-auto shrink-0">
           
+          {/* Compass / Discover Communities Button */}
+          <button
+            onClick={() => setViewMode('explore')}
+            className={`w-12 h-12 rounded-3xl hover:rounded-2xl transition-all flex items-center justify-center shrink-0 ${
+              viewMode === 'explore'
+                ? 'bg-gradient-to-tr from-cyan-600 to-blue-600 text-white rounded-2xl shadow-lg shadow-cyan-600/40 ring-2 ring-cyan-400'
+                : 'bg-white/5 hover:bg-white/10 text-slate-300'
+            }`}
+            title="Discover & Search Communities"
+          >
+            <Compass className="w-5 h-5" />
+          </button>
+
+          <div className="hidden md:block w-8 h-[1px] bg-white/10 my-1" />
+
+          {/* Joined & Available Community Icons */}
           <div className="flex md:flex-col items-center gap-3">
             {communities.map(comm => {
-              const isSelected = selectedCommunityId === comm.id;
+              const isSelected = viewMode === 'community' && selectedCommunityId === comm.id;
               return (
                 <button
                   key={comm.id}
-                  onClick={() => { setSelectedCommunityId(comm.id); setActiveChannel('chat'); }}
-                  className={`w-12 h-12 rounded-2xl transition-all relative group flex items-center justify-center shrink-0 ${
+                  onClick={() => { 
+                    setSelectedCommunityId(comm.id); 
+                    setViewMode('community');
+                    setActiveChannel('chat'); 
+                  }}
+                  className={`w-12 h-12 transition-all relative group flex items-center justify-center shrink-0 ${
                     isSelected
                       ? 'rounded-2xl ring-2 ring-red-500 shadow-lg shadow-red-600/30'
-                      : 'rounded-3xl hover:rounded-2xl hover:bg-white/10 opacity-70 hover:opacity-100'
+                      : (comm.isJoined ? 'rounded-2xl opacity-90 hover:opacity-100' : 'rounded-3xl opacity-60 hover:opacity-100 hover:rounded-2xl')
                   }`}
                   title={comm.name}
                 >
                   <img
                     src={comm.avatar}
                     alt={comm.name}
-                    className="w-full h-full rounded-inherit object-cover"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(comm.name)}`;
+                    }}
+                    className="w-full h-full rounded-inherit object-cover bg-slate-800"
                   />
                   {isSelected && (
                     <span className="hidden md:block absolute -left-3 w-1.5 h-6 bg-red-500 rounded-r-full" />
+                  )}
+                  {comm.isJoined && !isSelected && (
+                    <span className="hidden md:block absolute -left-3 w-1 h-2 bg-slate-400 rounded-r-full group-hover:h-4 transition-all" />
                   )}
                 </button>
               );
@@ -308,392 +367,546 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
           </button>
         </div>
 
-        {/* Column 2: Community Channels & Info (medium 240px) */}
-        <div className="w-full md:w-64 bg-[#0d0f1c] border-r border-white/10 flex flex-col justify-between shrink-0">
-          
-          {/* Community Header Card */}
-          <div className="p-4 border-b border-white/10 space-y-2 bg-[#101324]/60">
-            <div className="flex items-center justify-between">
-              <h3 className="font-heading font-black text-sm text-white truncate max-w-[170px]">
-                {activeCommunity?.name}
-              </h3>
-              <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-red-600/80 text-white uppercase">
-                {activeCommunity?.category}
-              </span>
-            </div>
-            <p className="text-[10px] text-slate-400 line-clamp-2">
-              {activeCommunity?.tagline}
-            </p>
-          </div>
-
-          {/* Channels List */}
-          <div className="flex-1 p-3 space-y-1.5 overflow-y-auto">
-            <span className="text-[9px] font-black uppercase tracking-wider text-slate-500 px-3 block mb-1">
-              Channels & Rooms
-            </span>
-
-            <button
-              onClick={() => setActiveChannel('chat')}
-              className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 ${
-                activeChannel === 'chat'
-                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Hash className="w-4 h-4 opacity-70" />
-              <span>general-chat</span>
-            </button>
-
-            <button
-              onClick={() => setActiveChannel('voice')}
-              className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 ${
-                activeChannel === 'voice'
-                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Mic className="w-4 h-4 text-amber-400" />
-              <span>voice-notes-lounge</span>
-            </button>
-
-            <button
-              onClick={() => setActiveChannel('theater')}
-              className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 ${
-                activeChannel === 'theater'
-                  ? 'bg-gradient-to-r from-red-600 to-amber-500 text-white shadow-lg shadow-red-600/30'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Tv className="w-4 h-4 text-cyan-400 animate-pulse" />
-              <span>theater-movie-room</span>
-            </button>
-
-            <button
-              onClick={() => setActiveChannel('members')}
-              className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 ${
-                activeChannel === 'members'
-                  ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Users className="w-4 h-4 opacity-70" />
-              <span>members ({activeCommunity?.memberCount.toLocaleString()})</span>
-            </button>
-          </div>
-
-          {/* Join / Leave Community Footer Action */}
-          <div className="p-3 border-t border-white/10 bg-[#0a0c16]">
-            {activeCommunity?.isJoined ? (
-              <button
-                onClick={() => handleLeaveCommunity(activeCommunity.id)}
-                className="w-full py-2 rounded-xl bg-white/5 hover:bg-red-600/20 text-slate-400 hover:text-red-400 border border-white/10 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Leave Community</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => handleToggleJoin(activeCommunity?.id)}
-                className="w-full py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-md transition-colors flex items-center justify-center gap-1.5"
-              >
-                <Check className="w-3.5 h-3.5" />
-                <span>Join Community</span>
-              </button>
-            )}
-          </div>
-
-        </div>
-
-        {/* Column 3: Active Channel Workspace (Chat, Voice, Theater, Members) */}
-        <div className="flex-1 bg-[#101222] flex flex-col justify-between min-w-0">
-          
-          {/* Active Channel Header */}
-          <div className="p-4 border-b border-white/10 bg-[#121526] flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <span className="font-mono text-slate-400 text-sm">#</span>
-              <h4 className="font-heading font-black text-sm text-white">
-                {activeChannel === 'chat' && 'general-chat'}
-                {activeChannel === 'voice' && 'voice-notes-lounge'}
-                {activeChannel === 'theater' && 'theater-movie-room'}
-                {activeChannel === 'members' && 'members-directory'}
-              </h4>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-              <span>{activeCommunity?.memberCount.toLocaleString()} Cinephiles</span>
-            </div>
-          </div>
-
-          {/* CHANNEL CONTENT 1: GENERAL CHAT */}
-          {activeChannel === 'chat' && (
-            <>
-              {/* Chat Stream */}
-              <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4">
-                {activeCommunity?.messages.map(msg => {
-                  const isMe = msg.senderId === currentUser.id;
-                  return (
-                    <div key={msg.id} className={`flex gap-3 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                      {!isMe && (
-                        <img src={msg.senderAvatar} alt={msg.senderName} className="w-8 h-8 rounded-full bg-slate-800 shrink-0 self-end" />
-                      )}
-
-                      <div className={`max-w-[80%] space-y-1 ${isMe ? 'items-end' : 'items-start'}`}>
-                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                          <span className="font-bold text-slate-300">{msg.senderName}</span>
-                          <span>•</span>
-                          <span>{msg.timestamp}</span>
-                        </div>
-
-                        <div className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
-                          isMe
-                            ? 'bg-red-600 text-white rounded-br-none shadow-md'
-                            : 'bg-[#181c30] text-slate-200 border border-white/10 rounded-bl-none'
-                        }`}>
-                          {msg.voiceMessage ? (
-                            <div className="flex items-center gap-3 py-1">
-                              <div className="p-2 rounded-xl bg-white/10 text-amber-300">
-                                <Volume2 className="w-4 h-4" />
-                              </div>
-                              <div>
-                                <span className="text-[10px] font-mono text-amber-300 block">
-                                  Voice Note ({msg.voiceMessage.durationSeconds}s)
-                                </span>
-                              </div>
-                            </div>
-                          ) : (
-                            <p>{msg.content}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Chat Input Bar */}
-              <div className="p-3.5 bg-[#121526] border-t border-white/10">
-                {isRecording ? (
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-red-950/60 border border-red-500/40 animate-pulse">
-                    <div className="flex items-center gap-3">
-                      <span className="w-3 h-3 rounded-full bg-red-500 animate-ping" />
-                      <span className="text-xs font-bold text-red-300">Recording Voice Note... ({recordingSeconds}s)</span>
-                    </div>
-                    <button
-                      onClick={handleStopRecording}
-                      className="px-4 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow"
-                    >
-                      Send Note
-                    </button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSendTextMessage} className="flex gap-2">
-                    <input
-                      type="text"
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      placeholder={`Message #${activeCommunity?.name}...`}
-                      className="flex-1 bg-[#181c30] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
-                    />
-
-                    <button
-                      type="button"
-                      onClick={handleStartRecording}
-                      className="p-2.5 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 transition-colors"
-                      title="Record Voice Note"
-                    >
-                      <Mic className="w-4 h-4" />
-                    </button>
-
-                    <button
-                      type="submit"
-                      disabled={!chatInput.trim()}
-                      className="px-4 py-2.5 rounded-2xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1"
-                    >
-                      <Send className="w-3.5 h-3.5" />
-                    </button>
-                  </form>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* CHANNEL CONTENT 2: VOICE NOTES LOUNGE */}
-          {activeChannel === 'voice' && (
-            <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-6">
-              <div className="w-20 h-20 rounded-3xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-2xl shadow-amber-950/40">
-                <Mic className="w-10 h-10 animate-pulse" />
-              </div>
-
-              <div className="space-y-2 max-w-md">
-                <h4 className="font-heading font-black text-xl text-white">
-                  Voice Discussion Lounge
-                </h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Record audio commentary, scene breakdowns, and voice notes with the entire community.
+        {/* VIEW MODE 1: DISCOVER & SEARCH ALL COMMUNITIES */}
+        {viewMode === 'explore' ? (
+          <div className="flex-1 bg-[#0c0e1b] flex flex-col justify-between p-6 overflow-y-auto space-y-6">
+            
+            {/* Explore Top Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-600/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold">
+                  <Compass className="w-3.5 h-3.5" />
+                  <span>Discover Film Communities</span>
+                </div>
+                <h2 className="font-heading font-black text-2xl sm:text-3xl text-white">
+                  Find Your Cinema Guild
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Search by franchise, director, or cinema industry, or create your own custom guild!
                 </p>
               </div>
 
-              {isRecording ? (
-                <div className="space-y-4">
-                  <div className="text-red-400 font-mono text-lg font-black animate-pulse">
-                    RECORDING: {recordingSeconds}s
-                  </div>
-                  <button
-                    onClick={handleStopRecording}
-                    className="px-8 py-3 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-black text-xs shadow-xl shadow-red-600/30 transition-transform hover:scale-105"
-                  >
-                    Finish & Send Voice Note
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={handleStartRecording}
-                  className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white font-black text-xs shadow-xl shadow-amber-600/30 transition-transform hover:scale-105 flex items-center gap-2"
-                >
-                  <Mic className="w-4 h-4" />
-                  <span>Start Recording Audio Note</span>
-                </button>
-              )}
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-extrabold text-xs shadow-xl shadow-red-600/30 transition-transform hover:scale-105 flex items-center gap-2 shrink-0 self-start sm:self-auto"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create Community</span>
+              </button>
             </div>
-          )}
 
-          {/* CHANNEL CONTENT 3: THEATER / MOVIE ROOM (NO AUTO-PLAY BY DEFAULT) */}
-          {activeChannel === 'theater' && (
-            <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 flex flex-col justify-between">
-              
-              {/* Screen / Player Area */}
-              <div className="aspect-video w-full rounded-2xl bg-black border border-white/10 overflow-hidden shadow-2xl relative flex items-center justify-center">
-                {roomSourceType === 'youtube' && activeYoutubeId ? (
-                  <iframe
-                    src={`https://www.youtube.com/embed/${activeYoutubeId}?autoplay=1&mute=0&controls=1`}
-                    title="Community Movie Stream"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full h-full"
-                  />
-                ) : roomSourceType === 'local_file' && localVideoUrl ? (
-                  <video
-                    src={localVideoUrl}
-                    controls
-                    autoPlay
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  /* Clean Screen: No Auto-play. User chooses what to play! */
-                  <div className="text-center p-8 space-y-4 max-w-md">
-                    <div className="w-16 h-16 rounded-3xl bg-red-600/10 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto shadow-xl">
-                      <Tv className="w-8 h-8" />
-                    </div>
-                    <div className="space-y-1">
-                      <h4 className="font-heading font-black text-lg text-white">
-                        Theater Screen Ready (No Stream Playing)
-                      </h4>
-                      <p className="text-xs text-slate-400">
-                        Choose a film from the catalog below, paste any YouTube video link, or select your own downloaded local video file.
-                      </p>
-                    </div>
-                  </div>
-                )}
+            {/* Search & Industry Filter Bar */}
+            <div className="space-y-3">
+              <div className="relative w-full">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchFilter}
+                  onChange={(e) => setSearchFilter(e.target.value)}
+                  placeholder="Search communities by name, topic, Marvel, Nolan, Tollywood, Bengali..."
+                  className="w-full bg-[#14172a] border border-white/10 rounded-2xl pl-11 pr-4 py-3 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
+                />
               </div>
 
-              {/* Player Controls & Stream Picker Bar */}
-              <div className="p-4 rounded-2xl bg-[#0c0f1e] border border-white/10 space-y-3">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  
-                  {/* Option 1: Select from Catalog */}
-                  <div className="flex-1 w-full flex gap-2">
-                    <select
-                      value={selectedCatalogMovieId}
-                      onChange={(e) => {
-                        setSelectedCatalogMovieId(e.target.value);
-                        handlePlayCatalogMovie(e.target.value);
-                      }}
-                      className="bg-[#181c30] border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500 flex-1"
-                    >
-                      <option value="">🎬 Select Movie Trailer from Catalog...</option>
-                      {allMovies.map(m => (
-                        <option key={m.id} value={m.id}>
-                          {m.title} ({m.year}) - {m.industry?.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Option 2: Upload Local Video File */}
-                  <label className="px-4 py-2 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 font-bold text-xs cursor-pointer transition-all flex items-center gap-1.5 shrink-0">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>{localFileName ? localFileName.slice(0, 16) + '...' : 'Upload Local Video'}</span>
-                    <input type="file" accept="video/*" onChange={handleLocalVideoUpload} className="hidden" />
-                  </label>
-
-                  {/* Option 3: Stop / Clear Stream */}
-                  {roomSourceType !== 'none' && (
-                    <button
-                      onClick={() => { setRoomSourceType('none'); setActiveYoutubeId(''); setLocalVideoUrl(null); }}
-                      className="px-3 py-2 rounded-xl bg-white/5 hover:bg-red-600/20 text-slate-400 hover:text-red-400 text-xs font-bold border border-white/10 transition-colors"
-                    >
-                      Stop Stream
-                    </button>
-                  )}
-                </div>
-
-                {/* Option 4: Custom YouTube URL Form */}
-                <form onSubmit={handlePlayCustomYoutube} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={youtubeInputUrl}
-                    onChange={(e) => setYoutubeInputUrl(e.target.value)}
-                    placeholder="Or paste any YouTube video link (e.g. https://youtu.be/...)"
-                    className="flex-1 bg-[#181c30] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
-                  />
+              {/* Category Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                {[
+                  { id: 'all', label: 'All Guilds' },
+                  { id: 'mcu-dc', label: '🦸‍♂️ Marvel & DC' },
+                  { id: 'hollywood', label: '🎬 Hollywood' },
+                  { id: 'bollywood', label: '🇮🇳 Bollywood' },
+                  { id: 'tollywood', label: '🔥 Tollywood' },
+                  { id: 'bengali', label: '🌿 Bengali' },
+                  { id: 'general', label: '🍿 General Cinema' }
+                ].map(cat => (
                   <button
-                    type="submit"
-                    disabled={!youtubeInputUrl.trim()}
-                    className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1"
+                    key={cat.id}
+                    onClick={() => setSelectedCategoryFilter(cat.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border ${
+                      selectedCategoryFilter === cat.id
+                        ? 'bg-cyan-600 text-white border-cyan-500 shadow-md shadow-cyan-600/30'
+                        : 'bg-[#121524] text-slate-300 border-white/10 hover:border-white/20'
+                    }`}
                   >
-                    <Play className="w-3.5 h-3.5" />
-                    <span>Play</span>
+                    {cat.label}
                   </button>
-                </form>
-              </div>
-
-            </div>
-          )}
-
-          {/* CHANNEL CONTENT 4: MEMBERS LIST */}
-          {activeChannel === 'members' && (
-            <div className="flex-1 p-6 overflow-y-auto space-y-4">
-              <h4 className="font-heading font-black text-sm text-white">
-                Community Members ({activeCommunity?.memberCount.toLocaleString()})
-              </h4>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-2xl bg-[#15182c] border border-white/10 flex items-center gap-3">
-                  <img src={currentUser.avatarUrl} alt={currentUser.displayName} className="w-10 h-10 rounded-xl bg-slate-800" />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-xs text-white">{currentUser.displayName}</span>
-                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-600 text-white">You</span>
-                    </div>
-                    <span className="text-[10px] font-mono text-amber-400">{currentUser.friendCode}</span>
-                  </div>
-                </div>
-
-                {activeCommunity?.members.map(mem => (
-                  <div key={mem.id} className="p-3.5 rounded-2xl bg-[#15182c] border border-white/5 flex items-center gap-3">
-                    <img src={mem.avatarUrl} alt={mem.displayName} className="w-10 h-10 rounded-xl bg-slate-800" />
-                    <div className="min-w-0 flex-1">
-                      <h5 className="font-bold text-xs text-white truncate">{mem.displayName}</h5>
-                      <span className="text-[10px] font-mono text-slate-400">{mem.friendCode}</span>
-                    </div>
-                  </div>
                 ))}
               </div>
             </div>
-          )}
 
-        </div>
+            {/* Communities Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCommunities.map(comm => (
+                <div
+                  key={comm.id}
+                  className="rounded-3xl bg-[#121526] border border-white/10 hover:border-cyan-500/40 transition-all overflow-hidden flex flex-col justify-between shadow-xl group"
+                >
+                  {/* Banner */}
+                  <div className="h-24 w-full relative overflow-hidden bg-slate-900">
+                    <img
+                      src={comm.bannerImage}
+                      alt={comm.name}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = 'https://image.tmdb.org/t/p/original/bOGkgRGdhrBYJSLpXaxhXVstNsV.jpg';
+                      }}
+                      className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#121526] via-transparent to-black/60" />
+                    
+                    <span className="absolute top-3 right-3 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-black/60 text-cyan-300 border border-cyan-500/30">
+                      {comm.category.toUpperCase()}
+                    </span>
+                  </div>
+
+                  {/* Body Info */}
+                  <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                    <div className="flex items-start gap-3">
+                      <img
+                        src={comm.avatar}
+                        alt={comm.name}
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(comm.name)}`;
+                        }}
+                        className="w-12 h-12 rounded-2xl object-cover border border-white/15 shadow-md -mt-8 relative z-10 bg-slate-800 shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-bold text-sm text-white truncate">{comm.name}</h4>
+                        <p className="text-[10px] text-slate-400 font-medium truncate">{comm.tagline}</p>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
+                      {comm.description}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-white/5 text-xs">
+                      <span className="text-slate-400 text-[11px]">👥 {comm.memberCount.toLocaleString()} Members</span>
+                      
+                      <div className="flex gap-2">
+                        {comm.isJoined ? (
+                          <button
+                            onClick={() => {
+                              setSelectedCommunityId(comm.id);
+                              setViewMode('community');
+                              setActiveChannel('chat');
+                            }}
+                            className="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1"
+                          >
+                            <span>Open Channels</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              handleToggleJoin(comm.id);
+                              setSelectedCommunityId(comm.id);
+                              setViewMode('community');
+                            }}
+                            className="px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1"
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>Join</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              ))}
+            </div>
+
+          </div>
+        ) : (
+          /* VIEW MODE 2: ACTIVE COMMUNITY DISCORD-STYLE CHANNELS & THEATER */
+          <>
+            {/* Column 2: Community Channels & Info (medium 240px) */}
+            <div className="w-full md:w-64 bg-[#0d0f1c] border-r border-white/10 flex flex-col justify-between shrink-0">
+              
+              {/* Community Header Card */}
+              <div className="p-4 border-b border-white/10 space-y-2 bg-[#101324]/60">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-heading font-black text-sm text-white truncate max-w-[170px]">
+                    {activeCommunity?.name}
+                  </h3>
+                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-red-600/80 text-white uppercase">
+                    {activeCommunity?.category}
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-400 line-clamp-2">
+                  {activeCommunity?.tagline}
+                </p>
+              </div>
+
+              {/* Channels List */}
+              <div className="flex-1 p-3 space-y-1.5 overflow-y-auto">
+                <span className="text-[9px] font-black uppercase tracking-wider text-slate-500 px-3 block mb-1">
+                  Channels & Rooms
+                </span>
+
+                <button
+                  onClick={() => setActiveChannel('chat')}
+                  className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 ${
+                    activeChannel === 'chat'
+                      ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                      : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Hash className="w-4 h-4 opacity-70" />
+                  <span>general-chat</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveChannel('voice')}
+                  className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 ${
+                    activeChannel === 'voice'
+                      ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                      : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Mic className="w-4 h-4 text-amber-400" />
+                  <span>voice-notes-lounge</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveChannel('theater')}
+                  className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 ${
+                    activeChannel === 'theater'
+                      ? 'bg-gradient-to-r from-red-600 to-amber-500 text-white shadow-lg shadow-red-600/30'
+                      : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Tv className="w-4 h-4 text-cyan-400 animate-pulse" />
+                  <span>theater-movie-room</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveChannel('members')}
+                  className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 ${
+                    activeChannel === 'members'
+                      ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                      : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Users className="w-4 h-4 opacity-70" />
+                  <span>members ({activeCommunity?.memberCount.toLocaleString()})</span>
+                </button>
+              </div>
+
+              {/* Join / Leave Community Footer Action */}
+              <div className="p-3 border-t border-white/10 bg-[#0a0c16]">
+                {activeCommunity?.isJoined ? (
+                  <button
+                    onClick={() => handleLeaveCommunity(activeCommunity.id)}
+                    className="w-full py-2 rounded-xl bg-white/5 hover:bg-red-600/20 text-slate-400 hover:text-red-400 border border-white/10 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Leave Community</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleToggleJoin(activeCommunity?.id)}
+                    className="w-full py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-md transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Join Community</span>
+                  </button>
+                )}
+              </div>
+
+            </div>
+
+            {/* Column 3: Active Channel Workspace (Chat, Voice, Theater, Members) */}
+            <div className="flex-1 bg-[#101222] flex flex-col justify-between min-w-0">
+              
+              {/* Active Channel Header */}
+              <div className="p-4 border-b border-white/10 bg-[#121526] flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="font-mono text-slate-400 text-sm">#</span>
+                  <h4 className="font-heading font-black text-sm text-white">
+                    {activeChannel === 'chat' && 'general-chat'}
+                    {activeChannel === 'voice' && 'voice-notes-lounge'}
+                    {activeChannel === 'theater' && 'theater-movie-room'}
+                    {activeChannel === 'members' && 'members-directory'}
+                  </h4>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                  <span>{activeCommunity?.memberCount.toLocaleString()} Cinephiles</span>
+                </div>
+              </div>
+
+              {/* CHANNEL CONTENT 1: GENERAL CHAT */}
+              {activeChannel === 'chat' && (
+                <>
+                  {/* Chat Stream */}
+                  <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4">
+                    {activeCommunity?.messages.map(msg => {
+                      const isMe = msg.senderId === currentUser.id;
+                      return (
+                        <div key={msg.id} className={`flex gap-3 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                          {!isMe && (
+                            <img src={msg.senderAvatar} alt={msg.senderName} className="w-8 h-8 rounded-full bg-slate-800 shrink-0 self-end" />
+                          )}
+
+                          <div className={`max-w-[80%] space-y-1 ${isMe ? 'items-end' : 'items-start'}`}>
+                            <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                              <span className="font-bold text-slate-300">{msg.senderName}</span>
+                              <span>•</span>
+                              <span>{msg.timestamp}</span>
+                            </div>
+
+                            <div className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                              isMe
+                                ? 'bg-red-600 text-white rounded-br-none shadow-md'
+                                : 'bg-[#181c30] text-slate-200 border border-white/10 rounded-bl-none'
+                            }`}>
+                              {msg.voiceMessage ? (
+                                <div className="flex items-center gap-3 py-1">
+                                  <div className="p-2 rounded-xl bg-white/10 text-amber-300">
+                                    <Volume2 className="w-4 h-4" />
+                                  </div>
+                                  <div>
+                                    <span className="text-[10px] font-mono text-amber-300 block">
+                                      Voice Note ({msg.voiceMessage.durationSeconds}s)
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p>{msg.content}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Chat Input Bar */}
+                  <div className="p-3.5 bg-[#121526] border-t border-white/10">
+                    {isRecording ? (
+                      <div className="flex items-center justify-between p-3 rounded-2xl bg-red-950/60 border border-red-500/40 animate-pulse">
+                        <div className="flex items-center gap-3">
+                          <span className="w-3 h-3 rounded-full bg-red-500 animate-ping" />
+                          <span className="text-xs font-bold text-red-300">Recording Voice Note... ({recordingSeconds}s)</span>
+                        </div>
+                        <button
+                          onClick={handleStopRecording}
+                          className="px-4 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow"
+                        >
+                          Send Note
+                        </button>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleSendTextMessage} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={chatInput}
+                          onChange={(e) => setChatInput(e.target.value)}
+                          placeholder={`Message #${activeCommunity?.name}...`}
+                          className="flex-1 bg-[#181c30] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={handleStartRecording}
+                          className="p-2.5 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 transition-colors"
+                          title="Record Voice Note"
+                        >
+                          <Mic className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          type="submit"
+                          disabled={!chatInput.trim()}
+                          className="px-4 py-2.5 rounded-2xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* CHANNEL CONTENT 2: VOICE NOTES LOUNGE */}
+              {activeChannel === 'voice' && (
+                <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-6">
+                  <div className="w-20 h-20 rounded-3xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-2xl shadow-amber-950/40">
+                    <Mic className="w-10 h-10 animate-pulse" />
+                  </div>
+
+                  <div className="space-y-2 max-w-md">
+                    <h4 className="font-heading font-black text-xl text-white">
+                      Voice Discussion Lounge
+                    </h4>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Record audio commentary, scene breakdowns, and voice notes with the entire community.
+                    </p>
+                  </div>
+
+                  {isRecording ? (
+                    <div className="space-y-4">
+                      <div className="text-red-400 font-mono text-lg font-black animate-pulse">
+                        RECORDING: {recordingSeconds}s
+                      </div>
+                      <button
+                        onClick={handleStopRecording}
+                        className="px-8 py-3 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-black text-xs shadow-xl shadow-red-600/30 transition-transform hover:scale-105"
+                      >
+                        Finish & Send Voice Note
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleStartRecording}
+                      className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white font-black text-xs shadow-xl shadow-amber-600/30 transition-transform hover:scale-105 flex items-center gap-2"
+                    >
+                      <Mic className="w-4 h-4" />
+                      <span>Start Recording Audio Note</span>
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* CHANNEL CONTENT 3: THEATER / MOVIE ROOM (NO AUTO-PLAY BY DEFAULT) */}
+              {activeChannel === 'theater' && (
+                <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 flex flex-col justify-between">
+                  
+                  {/* Screen / Player Area */}
+                  <div className="aspect-video w-full rounded-2xl bg-black border border-white/10 overflow-hidden shadow-2xl relative flex items-center justify-center">
+                    {roomSourceType === 'youtube' && activeYoutubeId ? (
+                      <iframe
+                        src={`https://www.youtube.com/embed/${activeYoutubeId}?autoplay=1&mute=0&controls=1`}
+                        title="Community Movie Stream"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full"
+                      />
+                    ) : roomSourceType === 'local_file' && localVideoUrl ? (
+                      <video
+                        src={localVideoUrl}
+                        controls
+                        autoPlay
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      /* Clean Screen: No Auto-play. User chooses what to play! */
+                      <div className="text-center p-8 space-y-4 max-w-md">
+                        <div className="w-16 h-16 rounded-3xl bg-red-600/10 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto shadow-xl">
+                          <Tv className="w-8 h-8" />
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="font-heading font-black text-lg text-white">
+                            Theater Screen Ready (No Stream Playing)
+                          </h4>
+                          <p className="text-xs text-slate-400">
+                            Choose a film from the catalog below, paste any YouTube video link, or select your own downloaded local video file.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Player Controls & Stream Picker Bar */}
+                  <div className="p-4 rounded-2xl bg-[#0c0f1e] border border-white/10 space-y-3">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      
+                      {/* Option 1: Select from Catalog */}
+                      <div className="flex-1 w-full flex gap-2">
+                        <select
+                          value={selectedCatalogMovieId}
+                          onChange={(e) => {
+                            setSelectedCatalogMovieId(e.target.value);
+                            handlePlayCatalogMovie(e.target.value);
+                          }}
+                          className="bg-[#181c30] border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500 flex-1"
+                        >
+                          <option value="">🎬 Select Movie Trailer from Catalog...</option>
+                          {allMovies.map(m => (
+                            <option key={m.id} value={m.id}>
+                              {m.title} ({m.year}) - {m.industry?.toUpperCase()}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Option 2: Upload Local Video File */}
+                      <label className="px-4 py-2 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 font-bold text-xs cursor-pointer transition-all flex items-center gap-1.5 shrink-0">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{localFileName ? localFileName.slice(0, 16) + '...' : 'Upload Local Video'}</span>
+                        <input type="file" accept="video/*" onChange={handleLocalVideoUpload} className="hidden" />
+                      </label>
+
+                      {/* Option 3: Stop / Clear Stream */}
+                      {roomSourceType !== 'none' && (
+                        <button
+                          onClick={() => { setRoomSourceType('none'); setActiveYoutubeId(''); setLocalVideoUrl(null); }}
+                          className="px-3 py-2 rounded-xl bg-white/5 hover:bg-red-600/20 text-slate-400 hover:text-red-400 text-xs font-bold border border-white/10 transition-colors"
+                        >
+                          Stop Stream
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Option 4: Custom YouTube URL Form */}
+                    <form onSubmit={handlePlayCustomYoutube} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={youtubeInputUrl}
+                        onChange={(e) => setYoutubeInputUrl(e.target.value)}
+                        placeholder="Or paste any YouTube video link (e.g. https://youtu.be/...)"
+                        className="flex-1 bg-[#181c30] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!youtubeInputUrl.trim()}
+                        className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1"
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                        <span>Play</span>
+                      </button>
+                    </form>
+                  </div>
+
+                </div>
+              )}
+
+              {/* CHANNEL CONTENT 4: MEMBERS LIST */}
+              {activeChannel === 'members' && (
+                <div className="flex-1 p-6 overflow-y-auto space-y-4">
+                  <h4 className="font-heading font-black text-sm text-white">
+                    Community Members ({activeCommunity?.memberCount.toLocaleString()})
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-3.5 rounded-2xl bg-[#15182c] border border-white/10 flex items-center gap-3">
+                      <img src={currentUser.avatarUrl} alt={currentUser.displayName} className="w-10 h-10 rounded-xl bg-slate-800" />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-xs text-white">{currentUser.displayName}</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-600 text-white">You</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-amber-400">{currentUser.friendCode}</span>
+                      </div>
+                    </div>
+
+                    {activeCommunity?.members.map(mem => (
+                      <div key={mem.id} className="p-3.5 rounded-2xl bg-[#15182c] border border-white/5 flex items-center gap-3">
+                        <img src={mem.avatarUrl} alt={mem.displayName} className="w-10 h-10 rounded-xl bg-slate-800" />
+                        <div className="min-w-0 flex-1">
+                          <h5 className="font-bold text-xs text-white truncate">{mem.displayName}</h5>
+                          <span className="text-[10px] font-mono text-slate-400">{mem.friendCode}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </>
+        )}
 
       </div>
 
