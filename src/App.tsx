@@ -172,8 +172,8 @@ export const App: React.FC = () => {
       )}
 
       {/* Main Content Area */}
-      <main className={`max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 ${
-        activeTab === 'communities' ? 'pt-20 sm:pt-22' : 'pt-24 sm:pt-28'
+      <main className={`max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 pb-20 lg:pb-12 ${
+        activeTab === 'communities' ? 'pt-18 sm:pt-22' : 'pt-20 sm:pt-28'
       }`}>
         
         {activeTab === 'home' && (

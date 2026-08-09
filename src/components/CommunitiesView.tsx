@@ -20,10 +20,8 @@ import {
   Search, 
   Check, 
   X,
-  Flame,
-  Globe,
-  SlidersHorizontal,
-  FolderPlus
+  ChevronLeft,
+  Menu
 } from 'lucide-react';
 
 interface CommunitiesViewProps {
@@ -53,6 +51,9 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
   
   const [activeChannel, setActiveChannel] = useState<ChannelTab>('chat');
   const [chatInput, setChatInput] = useState('');
+  
+  // Mobile responsive view toggle (sidebar vs channel workspace)
+  const [mobilePane, setMobilePane] = useState<'sidebar' | 'workspace'>('workspace');
 
   // Community Search & Filter in Explore Mode
   const [searchFilter, setSearchFilter] = useState('');
@@ -246,6 +247,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
     setSelectedCommunityId(newCommunity.id);
     setViewMode('community');
     setActiveChannel('chat');
+    setMobilePane('workspace');
     setIsCreateModalOpen(false);
     setNewCommName('');
     setNewCommTagline('');
@@ -257,6 +259,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
     setSelectedCommunityId(commId);
     setViewMode('community');
     setActiveChannel('chat');
+    setMobilePane('workspace');
   };
 
   const handleLeaveCommunity = (commId: string) => {
@@ -318,29 +321,31 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
   return (
     <div className="space-y-4">
       
-      {/* Compact Viewport-Optimized 3-Column Cinema Server Layout */}
-      <div className="h-[calc(100vh-8.5rem)] min-h-[520px] max-h-[760px] rounded-3xl bg-[#090b14] border border-white/10 shadow-2xl overflow-hidden flex flex-col md:flex-row">
+      {/* Compact Responsive 3-Column Cinema Server Layout */}
+      <div className="h-[calc(100vh-9rem)] sm:h-[calc(100vh-8.5rem)] min-h-[480px] max-h-[760px] rounded-2xl sm:rounded-3xl bg-[#090b14] border border-white/10 shadow-2xl overflow-hidden flex flex-col md:flex-row">
         
         {/* Column 1: Server Icons Sidebar (ONLY JOINED COMMUNITIES APPEAR HERE) */}
-        <div className="w-full md:w-16 bg-[#06080f] border-r border-white/5 p-2.5 flex md:flex-col items-center justify-between md:justify-start gap-2.5 overflow-x-auto md:overflow-y-auto shrink-0 select-none">
+        <div className={`w-full md:w-16 bg-[#06080f] border-r border-white/5 p-2 sm:p-2.5 flex md:flex-col items-center justify-between md:justify-start gap-2 overflow-x-auto md:overflow-y-auto shrink-0 select-none ${
+          mobilePane === 'workspace' && viewMode === 'community' ? 'hidden md:flex' : 'flex'
+        }`}>
           
           {/* Compass / Discover Communities Button */}
           <button
-            onClick={() => setViewMode('explore')}
-            className={`w-11 h-11 rounded-2xl transition-all flex items-center justify-center shrink-0 ${
+            onClick={() => { setViewMode('explore'); setMobilePane('workspace'); }}
+            className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl transition-all flex items-center justify-center shrink-0 ${
               viewMode === 'explore'
                 ? 'bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-600/40 ring-2 ring-cyan-400'
                 : 'bg-white/5 hover:bg-white/10 text-slate-300'
             }`}
             title="Discover & Search Communities"
           >
-            <Compass className="w-5 h-5" />
+            <Compass className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
           <div className="hidden md:block w-6 h-[1px] bg-white/10 my-0.5" />
 
           {/* ONLY JOINED Communities appear in the left active server dock */}
-          <div className="flex md:flex-col items-center gap-2.5">
+          <div className="flex md:flex-col items-center gap-2">
             {joinedCommunities.map(comm => {
               const isSelected = viewMode === 'community' && selectedCommunityId === comm.id;
               return (
@@ -350,11 +355,12 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     setSelectedCommunityId(comm.id); 
                     setViewMode('community');
                     setActiveChannel('chat'); 
+                    setMobilePane('workspace');
                   }}
-                  className={`w-11 h-11 transition-all relative group flex items-center justify-center shrink-0 ${
+                  className={`w-10 h-10 sm:w-11 sm:h-11 transition-all relative group flex items-center justify-center shrink-0 ${
                     isSelected
-                      ? 'rounded-2xl ring-2 ring-red-500 shadow-lg shadow-red-600/30'
-                      : 'rounded-2xl opacity-75 hover:opacity-100 hover:scale-105'
+                      ? 'rounded-xl sm:rounded-2xl ring-2 ring-red-500 shadow-lg shadow-red-600/30'
+                      : 'rounded-xl sm:rounded-2xl opacity-75 hover:opacity-100 hover:scale-105'
                   }`}
                   title={comm.name}
                 >
@@ -364,7 +370,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(comm.name)}`;
                     }}
-                    className="w-full h-full rounded-2xl object-cover bg-slate-800"
+                    className="w-full h-full rounded-xl sm:rounded-2xl object-cover bg-slate-800"
                   />
                   {isSelected && (
                     <span className="hidden md:block absolute -left-2.5 w-1 h-5 bg-red-500 rounded-r-full" />
@@ -377,7 +383,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
           {/* Add / Create Community Button */}
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="w-11 h-11 rounded-2xl bg-white/5 hover:bg-red-600/20 border border-white/10 hover:border-red-500/50 text-slate-300 hover:text-red-400 flex items-center justify-center transition-all shrink-0 md:mt-auto shadow"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-white/5 hover:bg-red-600/20 border border-white/10 hover:border-red-500/50 text-slate-300 hover:text-red-400 flex items-center justify-center transition-all shrink-0 md:mt-auto shadow"
             title="Create Your Own Community"
           >
             <Plus className="w-4 h-4" />
@@ -386,34 +392,34 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
         {/* VIEW MODE 1: DISCOVER & SEARCH ALL COMMUNITIES */}
         {viewMode === 'explore' ? (
-          <div className="flex-1 bg-[#0c0e1b] flex flex-col justify-between p-4 sm:p-6 overflow-y-auto space-y-4">
+          <div className="flex-1 bg-[#0c0e1b] flex flex-col justify-between p-3 sm:p-6 overflow-y-auto space-y-4">
             
             {/* Explore Top Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3 sm:pb-4">
               <div className="space-y-0.5">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-600/20 border border-cyan-500/30 text-cyan-300 text-[10px] font-bold">
                   <Compass className="w-3 h-3" />
                   <span>Discover Film Communities</span>
                 </div>
-                <h2 className="font-heading font-black text-xl sm:text-2xl text-white">
+                <h2 className="font-heading font-black text-lg sm:text-2xl text-white">
                   Find & Join Cinema Guilds
                 </h2>
-                <p className="text-[11px] text-slate-400">
-                  Search by franchise, director, or cinema industry, or create your own custom guild!
+                <p className="text-[10px] sm:text-xs text-slate-400">
+                  Search by franchise, director, or industry, or create your own custom guild!
                 </p>
               </div>
 
               <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-extrabold text-xs shadow-lg shadow-red-600/30 transition-transform hover:scale-105 flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
+                className="px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-extrabold text-xs shadow-lg shadow-red-600/30 transition-transform hover:scale-105 flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Create Community</span>
+                <span>Create Guild</span>
               </button>
             </div>
 
             {/* Search & Industry Filter Bar */}
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               <div className="relative w-full">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
@@ -421,7 +427,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
                   placeholder="Search communities by name, Marvel, Nolan, Tollywood, Bengali..."
-                  className="w-full bg-[#14172a] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
+                  className="w-full bg-[#14172a] border border-white/10 rounded-xl pl-10 pr-4 py-2 sm:py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
                 />
               </div>
 
@@ -439,7 +445,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategoryFilter(cat.id)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 border ${
+                    className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition-all shrink-0 border ${
                       selectedCategoryFilter === cat.id
                         ? 'bg-cyan-600 text-white border-cyan-500 shadow'
                         : 'bg-[#121524] text-slate-300 border-white/10 hover:border-white/20'
@@ -452,14 +458,14 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
             </div>
 
             {/* Communities Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 flex-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 flex-1">
               {filteredCommunities.map(comm => (
                 <div
                   key={comm.id}
                   className="rounded-2xl bg-[#121526] border border-white/10 hover:border-cyan-500/40 transition-all overflow-hidden flex flex-col justify-between shadow-lg group"
                 >
                   {/* Banner */}
-                  <div className="h-20 w-full relative overflow-hidden bg-slate-900">
+                  <div className="h-16 sm:h-20 w-full relative overflow-hidden bg-slate-900">
                     <img
                       src={comm.bannerImage}
                       alt={comm.name}
@@ -470,21 +476,21 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#121526] via-transparent to-black/60" />
                     
-                    <span className="absolute top-2 right-2 text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-black/60 text-cyan-300 border border-cyan-500/30">
+                    <span className="absolute top-2 right-2 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-black/60 text-cyan-300 border border-cyan-500/30">
                       {comm.category.toUpperCase()}
                     </span>
                   </div>
 
                   {/* Body Info */}
-                  <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
-                    <div className="flex items-start gap-2.5">
+                  <div className="p-3 space-y-2 flex-1 flex flex-col justify-between">
+                    <div className="flex items-start gap-2">
                       <img
                         src={comm.avatar}
                         alt={comm.name}
                         onError={(e) => {
                           (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(comm.name)}`;
                         }}
-                        className="w-10 h-10 rounded-xl object-cover border border-white/15 shadow -mt-6 relative z-10 bg-slate-800 shrink-0"
+                        className="w-9 h-9 rounded-xl object-cover border border-white/15 shadow -mt-5 relative z-10 bg-slate-800 shrink-0"
                       />
                       <div className="min-w-0 flex-1">
                         <h4 className="font-bold text-xs text-white truncate">{comm.name}</h4>
@@ -506,6 +512,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                               setSelectedCommunityId(comm.id);
                               setViewMode('community');
                               setActiveChannel('chat');
+                              setMobilePane('workspace');
                             }}
                             className="px-3 py-1 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow transition-all"
                           >
@@ -532,8 +539,10 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
         ) : (
           /* VIEW MODE 2: ACTIVE COMMUNITY DISCORD-STYLE CHANNELS & THEATER */
           <>
-            {/* Column 2: Community Channels & Info (compact 220px) */}
-            <div className="w-full md:w-56 bg-[#0d0f1c] border-r border-white/10 flex flex-col justify-between shrink-0">
+            {/* Column 2: Community Channels & Info (compact on desktop, toggleable on mobile) */}
+            <div className={`w-full md:w-56 bg-[#0d0f1c] border-r border-white/10 flex flex-col justify-between shrink-0 ${
+              mobilePane === 'workspace' ? 'hidden md:flex' : 'flex'
+            }`}>
               
               {/* Community Header Card */}
               <div className="p-3 border-b border-white/10 space-y-1 bg-[#101324]/60">
@@ -557,7 +566,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                 </span>
 
                 <button
-                  onClick={() => setActiveChannel('chat')}
+                  onClick={() => { setActiveChannel('chat'); setMobilePane('workspace'); }}
                   className={`w-full p-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                     activeChannel === 'chat'
                       ? 'bg-red-600 text-white shadow'
@@ -569,7 +578,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                 </button>
 
                 <button
-                  onClick={() => setActiveChannel('voice')}
+                  onClick={() => { setActiveChannel('voice'); setMobilePane('workspace'); }}
                   className={`w-full p-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                     activeChannel === 'voice'
                       ? 'bg-red-600 text-white shadow'
@@ -581,7 +590,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                 </button>
 
                 <button
-                  onClick={() => setActiveChannel('theater')}
+                  onClick={() => { setActiveChannel('theater'); setMobilePane('workspace'); }}
                   className={`w-full p-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                     activeChannel === 'theater'
                       ? 'bg-gradient-to-r from-red-600 to-amber-500 text-white shadow'
@@ -593,7 +602,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                 </button>
 
                 <button
-                  onClick={() => setActiveChannel('members')}
+                  onClick={() => { setActiveChannel('members'); setMobilePane('workspace'); }}
                   className={`w-full p-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                     activeChannel === 'members'
                       ? 'bg-red-600 text-white shadow'
@@ -619,11 +628,22 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
             </div>
 
             {/* Column 3: Active Channel Workspace (Chat, Voice, Theater, Members) */}
-            <div className="flex-1 bg-[#101222] flex flex-col justify-between min-w-0 h-full overflow-hidden">
+            <div className={`flex-1 bg-[#101222] flex flex-col justify-between min-w-0 h-full overflow-hidden ${
+              mobilePane === 'sidebar' ? 'hidden md:flex' : 'flex'
+            }`}>
               
               {/* Active Channel Header */}
-              <div className="p-3 border-b border-white/10 bg-[#121526] flex items-center justify-between shrink-0">
+              <div className="p-2.5 sm:p-3 border-b border-white/10 bg-[#121526] flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
+                  {/* Mobile Back to Channels Button */}
+                  <button
+                    onClick={() => setMobilePane('sidebar')}
+                    className="md:hidden p-1.5 rounded-lg bg-white/5 text-slate-300 hover:text-white"
+                    title="Back to Channels"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
                   <span className="font-mono text-slate-400 text-xs">#</span>
                   <h4 className="font-heading font-black text-xs sm:text-sm text-white truncate">
                     {activeChannel === 'chat' && 'general-chat'}
@@ -633,7 +653,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                   </h4>
                 </div>
 
-                <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-slate-400">
                   <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
                   <span>{activeCommunity?.memberCount.toLocaleString()} Cinephiles</span>
                 </div>
@@ -642,24 +662,24 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
               {/* CHANNEL CONTENT 1: GENERAL CHAT */}
               {activeChannel === 'chat' && (
                 <>
-                  {/* Chat Stream (Scrollable, Messages Stay Pinned to Bottom) */}
-                  <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-3">
+                  {/* Chat Stream */}
+                  <div className="flex-1 p-2.5 sm:p-4 overflow-y-auto space-y-2.5 sm:space-y-3">
                     {activeCommunity?.messages.map(msg => {
                       const isMe = msg.senderId === currentUser.id;
                       return (
-                        <div key={msg.id} className={`flex gap-2.5 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                        <div key={msg.id} className={`flex gap-2 sm:gap-2.5 ${isMe ? 'justify-end' : 'justify-start'}`}>
                           {!isMe && (
-                            <img src={msg.senderAvatar} alt={msg.senderName} className="w-7 h-7 rounded-full bg-slate-800 shrink-0 self-end" />
+                            <img src={msg.senderAvatar} alt={msg.senderName} className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-800 shrink-0 self-end" />
                           )}
 
-                          <div className={`max-w-[85%] space-y-0.5 ${isMe ? 'items-end' : 'items-start'}`}>
+                          <div className={`max-w-[88%] sm:max-w-[85%] space-y-0.5 ${isMe ? 'items-end' : 'items-start'}`}>
                             <div className="flex items-center gap-1 text-[9px] text-slate-400">
                               <span className="font-bold text-slate-300">{msg.senderName}</span>
                               <span>•</span>
                               <span>{msg.timestamp}</span>
                             </div>
 
-                            <div className={`p-3 rounded-2xl text-xs leading-relaxed ${
+                            <div className={`p-2.5 sm:p-3 rounded-2xl text-xs leading-relaxed ${
                               isMe
                                 ? 'bg-red-600 text-white rounded-br-none shadow-md'
                                 : 'bg-[#181c30] text-slate-200 border border-white/10 rounded-bl-none'
@@ -686,29 +706,29 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     <div ref={messagesEndRef} />
                   </div>
 
-                  {/* Chat Input Bar (ALWAYS PINNED RIGHT AT BOTTOM, NO PAGE SCROLL REQUIRED) */}
-                  <div className="p-2.5 sm:p-3 bg-[#121526] border-t border-white/10 shrink-0">
+                  {/* Chat Input Bar */}
+                  <div className="p-2 sm:p-3 bg-[#121526] border-t border-white/10 shrink-0">
                     {isRecording ? (
-                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-red-950/60 border border-red-500/40 animate-pulse">
+                      <div className="flex items-center justify-between p-2 rounded-xl bg-red-950/60 border border-red-500/40 animate-pulse">
                         <div className="flex items-center gap-2">
                           <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-                          <span className="text-xs font-bold text-red-300">Recording... ({recordingSeconds}s)</span>
+                          <span className="text-[11px] sm:text-xs font-bold text-red-300">Recording... ({recordingSeconds}s)</span>
                         </div>
                         <button
                           onClick={handleStopRecording}
-                          className="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow"
+                          className="px-2.5 sm:px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow"
                         >
-                          Send Note
+                          Send
                         </button>
                       </div>
                     ) : (
-                      <form onSubmit={handleSendTextMessage} className="flex gap-2">
+                      <form onSubmit={handleSendTextMessage} className="flex gap-1.5 sm:gap-2">
                         <input
                           type="text"
                           value={chatInput}
                           onChange={(e) => setChatInput(e.target.value)}
                           placeholder={`Message #${activeCommunity?.name}...`}
-                          className="flex-1 bg-[#181c30] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
+                          className="flex-1 bg-[#181c30] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
                         />
 
                         <button
@@ -723,7 +743,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                         <button
                           type="submit"
                           disabled={!chatInput.trim()}
-                          className="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-bold text-xs shadow transition-all flex items-center gap-1"
+                          className="px-3 sm:px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-bold text-xs shadow transition-all flex items-center gap-1"
                         >
                           <Send className="w-3.5 h-3.5" />
                         </button>
@@ -735,28 +755,28 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
               {/* CHANNEL CONTENT 2: VOICE NOTES LOUNGE */}
               {activeChannel === 'voice' && (
-                <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-4">
-                  <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-xl">
-                    <Mic className="w-8 h-8 animate-pulse" />
+                <div className="flex-1 p-4 sm:p-6 flex flex-col items-center justify-center text-center space-y-3 sm:space-y-4">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-xl">
+                    <Mic className="w-7 h-7 sm:w-8 sm:h-8 animate-pulse" />
                   </div>
 
                   <div className="space-y-1 max-w-sm">
-                    <h4 className="font-heading font-black text-base text-white">
+                    <h4 className="font-heading font-black text-sm sm:text-base text-white">
                       Voice Discussion Lounge
                     </h4>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[10px] sm:text-[11px] text-slate-400">
                       Record audio commentary, scene breakdowns, and voice notes with the entire community.
                     </p>
                   </div>
 
                   {isRecording ? (
                     <div className="space-y-3">
-                      <div className="text-red-400 font-mono text-base font-black animate-pulse">
+                      <div className="text-red-400 font-mono text-sm sm:text-base font-black animate-pulse">
                         RECORDING: {recordingSeconds}s
                       </div>
                       <button
                         onClick={handleStopRecording}
-                        className="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs shadow-lg"
+                        className="px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs shadow-lg"
                       >
                         Finish & Send Voice Note
                       </button>
@@ -764,10 +784,10 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                   ) : (
                     <button
                       onClick={handleStartRecording}
-                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white font-black text-xs shadow-lg transition-transform hover:scale-105 flex items-center gap-2"
+                      className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white font-black text-xs shadow-lg transition-transform hover:scale-105 flex items-center gap-2"
                     >
                       <Mic className="w-4 h-4" />
-                      <span>Start Recording Audio Note</span>
+                      <span>Start Audio Recording</span>
                     </button>
                   )}
                 </div>
@@ -775,10 +795,10 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
               {/* CHANNEL CONTENT 3: THEATER / MOVIE ROOM (NO AUTO-PLAY BY DEFAULT) */}
               {activeChannel === 'theater' && (
-                <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-3 flex flex-col justify-between">
+                <div className="flex-1 p-2.5 sm:p-4 overflow-y-auto space-y-2.5 sm:space-y-3 flex flex-col justify-between">
                   
                   {/* Screen / Player Area */}
-                  <div className="aspect-video max-h-[48vh] w-full rounded-2xl bg-black border border-white/10 overflow-hidden shadow-2xl relative flex items-center justify-center">
+                  <div className="aspect-video max-h-[44vh] w-full rounded-xl sm:rounded-2xl bg-black border border-white/10 overflow-hidden shadow-2xl relative flex items-center justify-center">
                     {roomSourceType === 'youtube' && activeYoutubeId ? (
                       <iframe
                         src={`https://www.youtube.com/embed/${activeYoutubeId}?autoplay=1&mute=0&controls=1`}
@@ -796,14 +816,14 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                       />
                     ) : (
                       /* Clean Screen: No Auto-play. User chooses what to play! */
-                      <div className="text-center p-6 space-y-2 max-w-sm">
-                        <div className="w-12 h-12 rounded-2xl bg-red-600/10 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto shadow">
-                          <Tv className="w-6 h-6" />
+                      <div className="text-center p-4 sm:p-6 space-y-1.5 max-w-sm">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-red-600/10 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto shadow">
+                          <Tv className="w-5 h-5 sm:w-6 sm:h-6" />
                         </div>
-                        <h4 className="font-heading font-black text-sm text-white">
+                        <h4 className="font-heading font-black text-xs sm:text-sm text-white">
                           Theater Screen Ready (No Stream Playing)
                         </h4>
-                        <p className="text-[10px] text-slate-400">
+                        <p className="text-[9px] sm:text-[10px] text-slate-400">
                           Select a film trailer below, paste a YouTube link, or upload your downloaded video file.
                         </p>
                       </div>
@@ -811,7 +831,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                   </div>
 
                   {/* Player Controls & Stream Picker Bar */}
-                  <div className="p-3 rounded-xl bg-[#0c0f1e] border border-white/10 space-y-2">
+                  <div className="p-2.5 sm:p-3 rounded-xl bg-[#0c0f1e] border border-white/10 space-y-2">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                       
                       {/* Option 1: Select from Catalog */}
@@ -827,16 +847,16 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                           <option value="">🎬 Select Movie Trailer from Catalog...</option>
                           {allMovies.map(m => (
                             <option key={m.id} value={m.id}>
-                              {m.title} ({m.year}) - {m.industry?.toUpperCase()}
+                              {m.title} ({m.year})
                             </option>
                           ))}
                         </select>
                       </div>
 
                       {/* Option 2: Upload Local Video File */}
-                      <label className="px-3 py-1.5 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 font-bold text-xs cursor-pointer transition-all flex items-center gap-1 shrink-0">
+                      <label className="px-2.5 py-1.5 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 font-bold text-xs cursor-pointer transition-all flex items-center gap-1 shrink-0">
                         <Upload className="w-3 h-3" />
-                        <span>{localFileName ? localFileName.slice(0, 14) + '...' : 'Upload Video'}</span>
+                        <span>{localFileName ? localFileName.slice(0, 10) + '...' : 'Upload Video'}</span>
                         <input type="file" accept="video/*" onChange={handleLocalVideoUpload} className="hidden" />
                       </label>
 
@@ -844,7 +864,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                       {roomSourceType !== 'none' && (
                         <button
                           onClick={() => { setRoomSourceType('none'); setActiveYoutubeId(''); setLocalVideoUrl(null); }}
-                          className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-red-600/20 text-slate-400 hover:text-red-400 text-xs font-bold border border-white/10 transition-colors"
+                          className="px-2 py-1 rounded-lg bg-white/5 hover:bg-red-600/20 text-slate-400 hover:text-red-400 text-xs font-bold border border-white/10 transition-colors"
                         >
                           Stop
                         </button>
@@ -852,13 +872,13 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     </div>
 
                     {/* Option 4: Custom YouTube URL Form */}
-                    <form onSubmit={handlePlayCustomYoutube} className="flex gap-2">
+                    <form onSubmit={handlePlayCustomYoutube} className="flex gap-1.5 sm:gap-2">
                       <input
                         type="text"
                         value={youtubeInputUrl}
                         onChange={(e) => setYoutubeInputUrl(e.target.value)}
                         placeholder="Or paste any YouTube URL..."
-                        className="flex-1 bg-[#181c30] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
+                        className="flex-1 bg-[#181c30] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
                       />
                       <button
                         type="submit"
@@ -876,13 +896,13 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
               {/* CHANNEL CONTENT 4: MEMBERS LIST */}
               {activeChannel === 'members' && (
-                <div className="flex-1 p-4 overflow-y-auto space-y-3">
+                <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-2.5 sm:space-y-3">
                   <h4 className="font-heading font-black text-xs text-white">
                     Community Members ({activeCommunity?.memberCount.toLocaleString()})
                   </h4>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <div className="p-3 rounded-xl bg-[#15182c] border border-white/10 flex items-center gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="p-2.5 sm:p-3 rounded-xl bg-[#15182c] border border-white/10 flex items-center gap-2.5">
                       <img src={currentUser.avatarUrl} alt={currentUser.displayName} className="w-8 h-8 rounded-lg bg-slate-800" />
                       <div>
                         <div className="flex items-center gap-1.5">
@@ -894,7 +914,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     </div>
 
                     {activeCommunity?.members.map(mem => (
-                      <div key={mem.id} className="p-3 rounded-xl bg-[#15182c] border border-white/5 flex items-center gap-2.5">
+                      <div key={mem.id} className="p-2.5 sm:p-3 rounded-xl bg-[#15182c] border border-white/5 flex items-center gap-2.5">
                         <img src={mem.avatarUrl} alt={mem.displayName} className="w-8 h-8 rounded-lg bg-slate-800" />
                         <div className="min-w-0 flex-1">
                           <h5 className="font-bold text-xs text-white truncate">{mem.displayName}</h5>
@@ -916,39 +936,39 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
       {isCreateModalOpen && (
         <div 
           onClick={() => setIsCreateModalOpen(false)}
-          className="fixed inset-0 z-50 overflow-y-auto bg-black/90 backdrop-blur-2xl p-4 sm:p-6 flex flex-col items-center justify-center animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/90 backdrop-blur-2xl p-3 sm:p-6 flex flex-col items-center justify-center animate-in fade-in duration-200"
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg rounded-3xl bg-[#0e111d] border border-red-500/40 shadow-2xl p-5 sm:p-6 space-y-3.5 my-auto relative"
+            className="w-full max-w-lg rounded-3xl bg-[#0e111d] border border-red-500/40 shadow-2xl p-4 sm:p-6 space-y-3 my-auto relative"
           >
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-red-600 text-white">
                   <Plus className="w-4 h-4" />
                 </div>
-                <h3 className="font-heading font-black text-sm sm:text-base text-white">Create New Film Community</h3>
+                <h3 className="font-heading font-black text-sm sm:text-base text-white">Create New Film Guild</h3>
               </div>
               <button onClick={() => setIsCreateModalOpen(false)} className="text-slate-400 hover:text-white">
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreateCommunitySubmit} className="space-y-3">
+            <form onSubmit={handleCreateCommunitySubmit} className="space-y-2.5">
               <div>
-                <label className="text-[11px] font-bold text-slate-300 block mb-1">Community Name</label>
+                <label className="text-[10px] sm:text-[11px] font-bold text-slate-300 block mb-1">Guild Name</label>
                 <input
                   type="text"
                   required
                   value={newCommName}
                   onChange={(e) => setNewCommName(e.target.value)}
-                  placeholder="e.g. Marvel Multiverse Theory Club, Nolan Society"
+                  placeholder="e.g. Marvel Multiverse Club, Nolan Society"
                   className="w-full bg-[#161a29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-slate-300 block mb-1">Cinema Category</label>
+                <label className="text-[10px] sm:text-[11px] font-bold text-slate-300 block mb-1">Cinema Category</label>
                 <select
                   value={newCommCategory}
                   onChange={(e) => setNewCommCategory(e.target.value as any)}
@@ -965,18 +985,18 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-slate-300 block mb-1">Short Tagline</label>
+                <label className="text-[10px] sm:text-[11px] font-bold text-slate-300 block mb-1">Short Tagline</label>
                 <input
                   type="text"
                   value={newCommTagline}
                   onChange={(e) => setNewCommTagline(e.target.value)}
-                  placeholder="e.g. Discussing Phase 1-6 lore and theory breakdowns"
+                  placeholder="e.g. Discussing Phase 1-6 lore and breakdowns"
                   className="w-full bg-[#161a29] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-slate-300 block mb-1">Community Description</label>
+                <label className="text-[10px] sm:text-[11px] font-bold text-slate-300 block mb-1">Description</label>
                 <textarea
                   rows={2}
                   value={newCommDesc}
@@ -990,15 +1010,15 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold"
+                  className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-600/30"
+                  className="px-4 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-600/30"
                 >
-                  Create Community
+                  Create Guild
                 </button>
               </div>
             </form>
