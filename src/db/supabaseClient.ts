@@ -210,6 +210,29 @@ export class AuthService {
   }
 
   /**
+   * Update Profile / Character Avatar
+   */
+  public updateUserAvatar(newAvatarUrl: string): UserProfile | null {
+    if (!this.currentUser) return null;
+    const updated: UserProfile = {
+      ...this.currentUser,
+      avatarUrl: newAvatarUrl
+    };
+    this.saveUser(updated);
+    return updated;
+  }
+
+  public updateUserProfile(updates: Partial<UserProfile>): UserProfile | null {
+    if (!this.currentUser) return null;
+    const updated: UserProfile = {
+      ...this.currentUser,
+      ...updates
+    };
+    this.saveUser(updated);
+    return updated;
+  }
+
+  /**
    * Sign Out
    */
   async signOut(): Promise<void> {
@@ -218,7 +241,7 @@ export class AuthService {
         await supabase.auth.signOut();
       }
     } catch {
-      // Ignore
+      // Offline fallback
     }
     this.saveUser(null);
   }

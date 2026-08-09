@@ -36,6 +36,7 @@ interface NavbarProps {
   onOpenCinePedia: () => void;
   onSyncStarted: () => void;
   onSelectMovie?: (m: Movie) => void;
+  onOpenAvatarSelector?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -49,7 +50,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSignOut,
   onOpenCinePedia,
   onSyncStarted,
-  onSelectMovie
+  onSelectMovie,
+  onOpenAvatarSelector
 }) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
@@ -283,19 +285,29 @@ export const Navbar: React.FC<NavbarProps> = ({
               <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${isSyncing ? 'animate-spin' : ''}`} />
             </button>
 
-            {/* User Profile Pill & Friend Code */}
-            <div className="flex items-center gap-2 p-1.5 pl-2 rounded-2xl bg-[#141724] border border-white/10">
-              <img
-                src={currentUser.avatarUrl}
-                alt={currentUser.displayName}
-                className="w-7 h-7 rounded-xl bg-slate-800"
-              />
+            {/* User Profile Pill & Character Avatar Selector Trigger */}
+            <div 
+              onClick={onOpenAvatarSelector}
+              className="flex items-center gap-2 p-1.5 pl-2 rounded-2xl bg-[#141724] border border-white/10 hover:border-red-500/50 hover:bg-white/5 cursor-pointer transition-all group"
+              title="Click to customize character avatar profile picture"
+            >
+              <div className="relative">
+                <img
+                  src={currentUser.avatarUrl}
+                  alt={currentUser.displayName}
+                  className="w-7 h-7 rounded-xl object-cover bg-slate-800 ring-1 ring-red-500/40 group-hover:ring-red-500 transition-all"
+                />
+                <span className="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#141724]" />
+              </div>
               <div className="hidden sm:block text-left pr-1">
-                <div className="font-bold text-[11px] text-white truncate max-w-[85px]">
+                <div className="font-bold text-[11px] text-white truncate max-w-[85px] group-hover:text-red-400 transition-colors">
                   {currentUser.displayName}
                 </div>
                 <button
-                  onClick={handleCopyCode}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopyCode();
+                  }}
                   className="font-mono text-[9px] text-amber-400 flex items-center gap-1 hover:underline"
                   title="Click to copy friend code"
                 >

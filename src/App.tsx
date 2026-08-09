@@ -16,6 +16,7 @@ import { TrailerModal } from './components/TrailerModal';
 import { ShareMovieModal } from './components/ShareMovieModal';
 import { CinePediaModal } from './components/CinePediaModal';
 import { AddMovieAutoImportModal } from './components/AddMovieAutoImportModal';
+import { AvatarSelectorModal } from './components/AvatarSelectorModal';
 import { LandingPage } from './components/LandingPage';
 import { CinematicLoader } from './components/CinematicLoader';
 import { Check } from 'lucide-react';
@@ -49,6 +50,7 @@ export const App: React.FC = () => {
   const [shareMovieTarget, setShareMovieTarget] = useState<Movie | null>(null);
   const [isAutoImportOpen, setIsAutoImportOpen] = useState(false);
   const [isCinePediaOpen, setIsCinePediaOpen] = useState(false);
+  const [isAvatarSelectorOpen, setIsAvatarSelectorOpen] = useState(false);
   const [syncToastMessage, setSyncToastMessage] = useState<string | null>(null);
 
   // Subscribe to Auth changes
@@ -156,6 +158,7 @@ export const App: React.FC = () => {
         onOpenCinePedia={() => setIsCinePediaOpen(true)}
         onSyncStarted={handleSyncNotification}
         onSelectMovie={(m) => setSelectedMovie(m)}
+        onOpenAvatarSelector={() => setIsAvatarSelectorOpen(true)}
       />
 
       {/* Sync Toast Notification */}
@@ -179,6 +182,8 @@ export const App: React.FC = () => {
             watchlistCount={watchlistCount}
             watchedCount={watchedCount}
             lastWatchedMovie={lastWatchedMovie}
+            searchQuery={searchQuery}
+            onClearSearch={() => setSearchQuery('')}
             onSelectMovie={(m) => setSelectedMovie(m)}
             onToggleWatchlist={handleToggleWatchlist}
             onToggleWatched={handleToggleWatched}
@@ -297,6 +302,14 @@ export const App: React.FC = () => {
         isOpen={isAutoImportOpen}
         onClose={() => setIsAutoImportOpen(false)}
         onAddMovie={handleAddMovie}
+      />
+
+      {/* Character Profile Avatar Selector Modal */}
+      <AvatarSelectorModal
+        isOpen={isAvatarSelectorOpen}
+        onClose={() => setIsAvatarSelectorOpen(false)}
+        currentUser={currentUser}
+        onAvatarUpdated={() => setCurrentUser(authService.getCurrentUser())}
       />
 
     </div>
