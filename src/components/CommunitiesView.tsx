@@ -319,17 +319,17 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
   }, [communities, searchFilter, selectedCategoryFilter]);
 
   return (
-    <div className="space-y-4">
+    <div className="w-full">
       
-      {/* Compact Responsive 3-Column Cinema Server Layout */}
-      <div className="h-[calc(100vh-9rem)] sm:h-[calc(100vh-8.5rem)] min-h-[480px] max-h-[760px] rounded-2xl sm:rounded-3xl bg-[#090b14] border border-white/10 shadow-2xl overflow-hidden flex flex-col md:flex-row">
+      {/* 3-Column Cinema Server Layout with Clear Bounds & Clean Padding */}
+      <div className="h-[calc(100vh-8rem)] min-h-[520px] max-h-[780px] rounded-2xl sm:rounded-3xl bg-[#090b14] border border-white/15 shadow-2xl overflow-hidden flex flex-col md:flex-row">
         
-        {/* Column 1: Server Icons Sidebar (ONLY JOINED COMMUNITIES APPEAR HERE) */}
-        <div className={`w-full md:w-16 bg-[#06080f] border-r border-white/5 p-2 sm:p-2.5 flex md:flex-col items-center justify-between md:justify-start gap-2 overflow-x-auto md:overflow-y-auto shrink-0 select-none ${
+        {/* Column 1: Server Icons Sidebar (ONLY JOINED GUILDS) */}
+        <div className={`w-full md:w-16 bg-[#06080f] border-r border-white/10 p-2 sm:p-2.5 flex md:flex-col items-center justify-between md:justify-start gap-2 overflow-x-auto md:overflow-y-auto shrink-0 select-none ${
           mobilePane === 'workspace' && viewMode === 'community' ? 'hidden md:flex' : 'flex'
         }`}>
           
-          {/* Compass / Discover Communities Button */}
+          {/* Discover Guilds Button */}
           <button
             onClick={() => { setViewMode('explore'); setMobilePane('workspace'); }}
             className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl transition-all flex items-center justify-center shrink-0 ${
@@ -339,12 +339,12 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
             }`}
             title="Discover & Search Communities"
           >
-            <Compass className="w-4 h-4 sm:w-5 sm:h-5" />
+            <Compass className="w-5 h-5" />
           </button>
 
           <div className="hidden md:block w-6 h-[1px] bg-white/10 my-0.5" />
 
-          {/* ONLY JOINED Communities appear in the left active server dock */}
+          {/* Joined Guild Icons */}
           <div className="flex md:flex-col items-center gap-2">
             {joinedCommunities.map(comm => {
               const isSelected = viewMode === 'community' && selectedCommunityId === comm.id;
@@ -380,11 +380,11 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
             })}
           </div>
 
-          {/* Add / Create Community Button */}
+          {/* Add / Create Guild Button */}
           <button
             onClick={() => setIsCreateModalOpen(true)}
             className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-white/5 hover:bg-red-600/20 border border-white/10 hover:border-red-500/50 text-slate-300 hover:text-red-400 flex items-center justify-center transition-all shrink-0 md:mt-auto shadow"
-            title="Create Your Own Community"
+            title="Create Your Own Guild"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -392,9 +392,9 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
         {/* VIEW MODE 1: DISCOVER & SEARCH ALL COMMUNITIES */}
         {viewMode === 'explore' ? (
-          <div className="flex-1 bg-[#0c0e1b] flex flex-col justify-between p-3 sm:p-6 overflow-y-auto space-y-4">
+          <div className="flex-1 bg-[#0c0e1b] flex flex-col justify-between p-4 sm:p-6 overflow-y-auto space-y-4">
             
-            {/* Explore Top Header */}
+            {/* Explore Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3 sm:pb-4">
               <div className="space-y-0.5">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-600/20 border border-cyan-500/30 text-cyan-300 text-[10px] font-bold">
@@ -418,7 +418,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
               </button>
             </div>
 
-            {/* Search & Industry Filter Bar */}
+            {/* Search & Category Filter */}
             <div className="space-y-2">
               <div className="relative w-full">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -481,7 +481,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     </span>
                   </div>
 
-                  {/* Body Info */}
+                  {/* Info */}
                   <div className="p-3 space-y-2 flex-1 flex flex-col justify-between">
                     <div className="flex items-start gap-2">
                       <img
@@ -537,20 +537,20 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
           </div>
         ) : (
-          /* VIEW MODE 2: ACTIVE COMMUNITY DISCORD-STYLE CHANNELS & THEATER */
+          /* VIEW MODE 2: ACTIVE COMMUNITY CHANNELS & WORKSPACE */
           <>
-            {/* Column 2: Community Channels & Info (compact on desktop, toggleable on mobile) */}
+            {/* Column 2: Channels List & Community Info Card */}
             <div className={`w-full md:w-56 bg-[#0d0f1c] border-r border-white/10 flex flex-col justify-between shrink-0 ${
               mobilePane === 'workspace' ? 'hidden md:flex' : 'flex'
             }`}>
               
               {/* Community Header Card */}
-              <div className="p-3 border-b border-white/10 space-y-1 bg-[#101324]/60">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-heading font-black text-xs text-white truncate max-w-[140px]">
+              <div className="p-3.5 border-b border-white/10 space-y-1 bg-[#101324]/80">
+                <div className="flex items-center justify-between gap-1.5">
+                  <h3 className="font-heading font-black text-xs sm:text-sm text-white truncate max-w-[130px]">
                     {activeCommunity?.name}
                   </h3>
-                  <span className="text-[8px] font-black px-1.5 py-0.5 rounded bg-red-600/80 text-white uppercase">
+                  <span className="text-[8px] font-black px-1.5 py-0.5 rounded bg-red-600 text-white uppercase shrink-0">
                     {activeCommunity?.category}
                   </span>
                 </div>
@@ -562,12 +562,12 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
               {/* Channels List */}
               <div className="flex-1 p-2 space-y-1 overflow-y-auto">
                 <span className="text-[8px] font-black uppercase tracking-wider text-slate-500 px-2 block mb-1">
-                  Channels
+                  Channels & Rooms
                 </span>
 
                 <button
                   onClick={() => { setActiveChannel('chat'); setMobilePane('workspace'); }}
-                  className={`w-full p-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                  className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                     activeChannel === 'chat'
                       ? 'bg-red-600 text-white shadow'
                       : 'text-slate-300 hover:text-white hover:bg-white/5'
@@ -579,7 +579,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
                 <button
                   onClick={() => { setActiveChannel('voice'); setMobilePane('workspace'); }}
-                  className={`w-full p-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                  className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                     activeChannel === 'voice'
                       ? 'bg-red-600 text-white shadow'
                       : 'text-slate-300 hover:text-white hover:bg-white/5'
@@ -591,7 +591,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
                 <button
                   onClick={() => { setActiveChannel('theater'); setMobilePane('workspace'); }}
-                  className={`w-full p-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                  className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                     activeChannel === 'theater'
                       ? 'bg-gradient-to-r from-red-600 to-amber-500 text-white shadow'
                       : 'text-slate-300 hover:text-white hover:bg-white/5'
@@ -603,39 +603,39 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
                 <button
                   onClick={() => { setActiveChannel('members'); setMobilePane('workspace'); }}
-                  className={`w-full p-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                  className={`w-full p-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                     activeChannel === 'members'
                       ? 'bg-red-600 text-white shadow'
                       : 'text-slate-300 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <Users className="w-3.5 h-3.5 opacity-70" />
-                  <span>members</span>
+                  <span>members ({activeCommunity?.memberCount.toLocaleString()})</span>
                 </button>
               </div>
 
-              {/* Leave Community Action Button */}
+              {/* Leave Guild Button */}
               <div className="p-2.5 border-t border-white/10 bg-[#0a0c16]">
                 <button
                   onClick={() => handleLeaveCommunity(activeCommunity.id)}
-                  className="w-full py-1.5 rounded-xl bg-white/5 hover:bg-red-600/20 text-slate-400 hover:text-red-400 border border-white/10 font-bold text-xs transition-colors flex items-center justify-center gap-1"
+                  className="w-full py-1.5 rounded-xl bg-white/5 hover:bg-red-600/20 text-slate-400 hover:text-red-400 border border-white/10 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
                 >
-                  <LogOut className="w-3 h-3" />
+                  <LogOut className="w-3.5 h-3.5" />
                   <span>Leave Community</span>
                 </button>
               </div>
 
             </div>
 
-            {/* Column 3: Active Channel Workspace (Chat, Voice, Theater, Members) */}
+            {/* Column 3: Active Workspace (Chat, Voice, Theater, Members) */}
             <div className={`flex-1 bg-[#101222] flex flex-col justify-between min-w-0 h-full overflow-hidden ${
               mobilePane === 'sidebar' ? 'hidden md:flex' : 'flex'
             }`}>
               
-              {/* Active Channel Header */}
-              <div className="p-2.5 sm:p-3 border-b border-white/10 bg-[#121526] flex items-center justify-between shrink-0">
+              {/* Workspace Header Bar */}
+              <div className="p-3 sm:p-3.5 border-b border-white/10 bg-[#121526] flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
-                  {/* Mobile Back to Channels Button */}
+                  {/* Mobile Back Button */}
                   <button
                     onClick={() => setMobilePane('sidebar')}
                     className="md:hidden p-1.5 rounded-lg bg-white/5 text-slate-300 hover:text-white"
@@ -663,23 +663,23 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
               {activeChannel === 'chat' && (
                 <>
                   {/* Chat Stream */}
-                  <div className="flex-1 p-2.5 sm:p-4 overflow-y-auto space-y-2.5 sm:space-y-3">
+                  <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-3">
                     {activeCommunity?.messages.map(msg => {
                       const isMe = msg.senderId === currentUser.id;
                       return (
                         <div key={msg.id} className={`flex gap-2 sm:gap-2.5 ${isMe ? 'justify-end' : 'justify-start'}`}>
                           {!isMe && (
-                            <img src={msg.senderAvatar} alt={msg.senderName} className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-800 shrink-0 self-end" />
+                            <img src={msg.senderAvatar} alt={msg.senderName} className="w-7 h-7 rounded-full bg-slate-800 shrink-0 self-end" />
                           )}
 
-                          <div className={`max-w-[88%] sm:max-w-[85%] space-y-0.5 ${isMe ? 'items-end' : 'items-start'}`}>
+                          <div className={`max-w-[85%] space-y-0.5 ${isMe ? 'items-end' : 'items-start'}`}>
                             <div className="flex items-center gap-1 text-[9px] text-slate-400">
                               <span className="font-bold text-slate-300">{msg.senderName}</span>
                               <span>•</span>
                               <span>{msg.timestamp}</span>
                             </div>
 
-                            <div className={`p-2.5 sm:p-3 rounded-2xl text-xs leading-relaxed ${
+                            <div className={`p-3 rounded-2xl text-xs leading-relaxed ${
                               isMe
                                 ? 'bg-red-600 text-white rounded-br-none shadow-md'
                                 : 'bg-[#181c30] text-slate-200 border border-white/10 rounded-bl-none'
@@ -706,29 +706,29 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     <div ref={messagesEndRef} />
                   </div>
 
-                  {/* Chat Input Bar */}
-                  <div className="p-2 sm:p-3 bg-[#121526] border-t border-white/10 shrink-0">
+                  {/* Pinned Chat Input */}
+                  <div className="p-2.5 sm:p-3 bg-[#121526] border-t border-white/10 shrink-0">
                     {isRecording ? (
-                      <div className="flex items-center justify-between p-2 rounded-xl bg-red-950/60 border border-red-500/40 animate-pulse">
+                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-red-950/60 border border-red-500/40 animate-pulse">
                         <div className="flex items-center gap-2">
                           <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
                           <span className="text-[11px] sm:text-xs font-bold text-red-300">Recording... ({recordingSeconds}s)</span>
                         </div>
                         <button
                           onClick={handleStopRecording}
-                          className="px-2.5 sm:px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow"
+                          className="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow"
                         >
-                          Send
+                          Send Note
                         </button>
                       </div>
                     ) : (
-                      <form onSubmit={handleSendTextMessage} className="flex gap-1.5 sm:gap-2">
+                      <form onSubmit={handleSendTextMessage} className="flex gap-2">
                         <input
                           type="text"
                           value={chatInput}
                           onChange={(e) => setChatInput(e.target.value)}
                           placeholder={`Message #${activeCommunity?.name}...`}
-                          className="flex-1 bg-[#181c30] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
+                          className="flex-1 bg-[#181c30] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
                         />
 
                         <button
@@ -743,7 +743,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                         <button
                           type="submit"
                           disabled={!chatInput.trim()}
-                          className="px-3 sm:px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-bold text-xs shadow transition-all flex items-center gap-1"
+                          className="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-bold text-xs shadow transition-all flex items-center gap-1"
                         >
                           <Send className="w-3.5 h-3.5" />
                         </button>
@@ -755,28 +755,28 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
               {/* CHANNEL CONTENT 2: VOICE NOTES LOUNGE */}
               {activeChannel === 'voice' && (
-                <div className="flex-1 p-4 sm:p-6 flex flex-col items-center justify-center text-center space-y-3 sm:space-y-4">
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-xl">
-                    <Mic className="w-7 h-7 sm:w-8 sm:h-8 animate-pulse" />
+                <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-xl">
+                    <Mic className="w-8 h-8 animate-pulse" />
                   </div>
 
                   <div className="space-y-1 max-w-sm">
-                    <h4 className="font-heading font-black text-sm sm:text-base text-white">
+                    <h4 className="font-heading font-black text-base text-white">
                       Voice Discussion Lounge
                     </h4>
-                    <p className="text-[10px] sm:text-[11px] text-slate-400">
+                    <p className="text-[11px] text-slate-400">
                       Record audio commentary, scene breakdowns, and voice notes with the entire community.
                     </p>
                   </div>
 
                   {isRecording ? (
                     <div className="space-y-3">
-                      <div className="text-red-400 font-mono text-sm sm:text-base font-black animate-pulse">
+                      <div className="text-red-400 font-mono text-base font-black animate-pulse">
                         RECORDING: {recordingSeconds}s
                       </div>
                       <button
                         onClick={handleStopRecording}
-                        className="px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs shadow-lg"
+                        className="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs shadow-lg"
                       >
                         Finish & Send Voice Note
                       </button>
@@ -784,7 +784,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                   ) : (
                     <button
                       onClick={handleStartRecording}
-                      className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white font-black text-xs shadow-lg transition-transform hover:scale-105 flex items-center gap-2"
+                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white font-black text-xs shadow-lg transition-transform hover:scale-105 flex items-center gap-2"
                     >
                       <Mic className="w-4 h-4" />
                       <span>Start Audio Recording</span>
@@ -793,12 +793,12 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                 </div>
               )}
 
-              {/* CHANNEL CONTENT 3: THEATER / MOVIE ROOM (NO AUTO-PLAY BY DEFAULT) */}
+              {/* CHANNEL CONTENT 3: THEATER / MOVIE ROOM */}
               {activeChannel === 'theater' && (
-                <div className="flex-1 p-2.5 sm:p-4 overflow-y-auto space-y-2.5 sm:space-y-3 flex flex-col justify-between">
+                <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-3 flex flex-col justify-between">
                   
-                  {/* Screen / Player Area */}
-                  <div className="aspect-video max-h-[44vh] w-full rounded-xl sm:rounded-2xl bg-black border border-white/10 overflow-hidden shadow-2xl relative flex items-center justify-center">
+                  {/* Screen */}
+                  <div className="aspect-video max-h-[46vh] w-full rounded-2xl bg-black border border-white/10 overflow-hidden shadow-2xl relative flex items-center justify-center">
                     {roomSourceType === 'youtube' && activeYoutubeId ? (
                       <iframe
                         src={`https://www.youtube.com/embed/${activeYoutubeId}?autoplay=1&mute=0&controls=1`}
@@ -815,26 +815,23 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                         className="w-full h-full object-contain"
                       />
                     ) : (
-                      /* Clean Screen: No Auto-play. User chooses what to play! */
-                      <div className="text-center p-4 sm:p-6 space-y-1.5 max-w-sm">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-red-600/10 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto shadow">
-                          <Tv className="w-5 h-5 sm:w-6 sm:h-6" />
+                      <div className="text-center p-6 space-y-2 max-w-sm">
+                        <div className="w-12 h-12 rounded-2xl bg-red-600/10 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto shadow">
+                          <Tv className="w-6 h-6" />
                         </div>
-                        <h4 className="font-heading font-black text-xs sm:text-sm text-white">
+                        <h4 className="font-heading font-black text-sm text-white">
                           Theater Screen Ready (No Stream Playing)
                         </h4>
-                        <p className="text-[9px] sm:text-[10px] text-slate-400">
+                        <p className="text-[10px] text-slate-400">
                           Select a film trailer below, paste a YouTube link, or upload your downloaded video file.
                         </p>
                       </div>
                     )}
                   </div>
 
-                  {/* Player Controls & Stream Picker Bar */}
-                  <div className="p-2.5 sm:p-3 rounded-xl bg-[#0c0f1e] border border-white/10 space-y-2">
+                  {/* Controls */}
+                  <div className="p-3 rounded-xl bg-[#0c0f1e] border border-white/10 space-y-2">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                      
-                      {/* Option 1: Select from Catalog */}
                       <div className="flex-1 w-full flex gap-2">
                         <select
                           value={selectedCatalogMovieId}
@@ -853,37 +850,34 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                         </select>
                       </div>
 
-                      {/* Option 2: Upload Local Video File */}
-                      <label className="px-2.5 py-1.5 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 font-bold text-xs cursor-pointer transition-all flex items-center gap-1 shrink-0">
+                      <label className="px-3 py-1.5 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 font-bold text-xs cursor-pointer transition-all flex items-center gap-1 shrink-0">
                         <Upload className="w-3 h-3" />
-                        <span>{localFileName ? localFileName.slice(0, 10) + '...' : 'Upload Video'}</span>
+                        <span>{localFileName ? localFileName.slice(0, 12) + '...' : 'Upload Video'}</span>
                         <input type="file" accept="video/*" onChange={handleLocalVideoUpload} className="hidden" />
                       </label>
 
-                      {/* Option 3: Stop / Clear Stream */}
                       {roomSourceType !== 'none' && (
                         <button
                           onClick={() => { setRoomSourceType('none'); setActiveYoutubeId(''); setLocalVideoUrl(null); }}
-                          className="px-2 py-1 rounded-lg bg-white/5 hover:bg-red-600/20 text-slate-400 hover:text-red-400 text-xs font-bold border border-white/10 transition-colors"
+                          className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-red-600/20 text-slate-400 hover:text-red-400 text-xs font-bold border border-white/10 transition-colors"
                         >
                           Stop
                         </button>
                       )}
                     </div>
 
-                    {/* Option 4: Custom YouTube URL Form */}
-                    <form onSubmit={handlePlayCustomYoutube} className="flex gap-1.5 sm:gap-2">
+                    <form onSubmit={handlePlayCustomYoutube} className="flex gap-2">
                       <input
                         type="text"
                         value={youtubeInputUrl}
                         onChange={(e) => setYoutubeInputUrl(e.target.value)}
                         placeholder="Or paste any YouTube URL..."
-                        className="flex-1 bg-[#181c30] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
+                        className="flex-1 bg-[#181c30] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
                       />
                       <button
                         type="submit"
                         disabled={!youtubeInputUrl.trim()}
-                        className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-bold text-xs shadow transition-all flex items-center gap-1"
+                        className="px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white font-bold text-xs shadow transition-all flex items-center gap-1"
                       >
                         <Play className="w-3 h-3" />
                         <span>Play</span>
@@ -896,13 +890,13 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
               {/* CHANNEL CONTENT 4: MEMBERS LIST */}
               {activeChannel === 'members' && (
-                <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-2.5 sm:space-y-3">
+                <div className="flex-1 p-4 overflow-y-auto space-y-3">
                   <h4 className="font-heading font-black text-xs text-white">
                     Community Members ({activeCommunity?.memberCount.toLocaleString()})
                   </h4>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div className="p-2.5 sm:p-3 rounded-xl bg-[#15182c] border border-white/10 flex items-center gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div className="p-3 rounded-xl bg-[#15182c] border border-white/10 flex items-center gap-2.5">
                       <img src={currentUser.avatarUrl} alt={currentUser.displayName} className="w-8 h-8 rounded-lg bg-slate-800" />
                       <div>
                         <div className="flex items-center gap-1.5">
@@ -914,7 +908,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     </div>
 
                     {activeCommunity?.members.map(mem => (
-                      <div key={mem.id} className="p-2.5 sm:p-3 rounded-xl bg-[#15182c] border border-white/5 flex items-center gap-2.5">
+                      <div key={mem.id} className="p-3 rounded-xl bg-[#15182c] border border-white/5 flex items-center gap-2.5">
                         <img src={mem.avatarUrl} alt={mem.displayName} className="w-8 h-8 rounded-lg bg-slate-800" />
                         <div className="min-w-0 flex-1">
                           <h5 className="font-bold text-xs text-white truncate">{mem.displayName}</h5>
